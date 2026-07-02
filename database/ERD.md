@@ -6,17 +6,17 @@ user, while still allowing admins to query and manage the same records.
 
 ```mermaid
 erDiagram
-    USER {
+    USERS {
         varchar username PK
         varchar password
     }
 
-    ROLE {
+    ROLES {
         varchar username PK, FK
         varchar role PK
     }
 
-    PATTERN {
+    PATTERNS {
         int pattern_id PK
         varchar username FK
         varchar category
@@ -31,17 +31,23 @@ erDiagram
         datetime updated_at
     }
 
-    TAG {
+    TAGS {
         int tag_id PK
+        varchar username FK
         varchar name
     }
 
-    PATTERN_TAG {
+    PATTERN_TAGS {
         int pattern_id PK, FK
         int tag_id PK, FK
     }
 
-    PROJECT {
+    PROJECT_TAGS {
+        int project_id PK, FK
+        int tag_id PK, FK
+    }
+
+    PROJECTS {
         int project_id PK
         varchar username FK
         int pattern_id FK
@@ -57,7 +63,7 @@ erDiagram
         datetime updated_at
     }
 
-    YARN {
+    YARNS {
         int yarn_id PK
         varchar brand
         varchar colorway
@@ -72,7 +78,7 @@ erDiagram
         datetime updated_at
     }
 
-    TOOL {
+    TOOLS {
         int tool_id PK
         varchar tool_type
         varchar brand
@@ -82,7 +88,7 @@ erDiagram
         datetime updated_at
     }
 
-    PATTERN_YARN {
+    PATTERN_YARNS {
         int pattern_yarn_id PK
         int pattern_id FK
         int suggested_yarn_id FK
@@ -92,14 +98,14 @@ erDiagram
         float grams
     }
 
-    PATTERN_TOOL {
+    PATTERN_TOOLS {
         int pattern_tool_id PK
         int pattern_id FK
         varchar tool_type
         float size_mm
     }
 
-    PATTERN_MATERIAL {
+    PATTERN_MATERIALS {
         int pattern_material_id PK
         int pattern_id FK
         varchar name
@@ -109,7 +115,7 @@ erDiagram
         datetime updated_at
     }
 
-    PROJECT_YARN {
+    PROJECT_YARNS {
         int project_yarn_id PK
         int project_id FK
         int pattern_yarn_id FK
@@ -120,7 +126,7 @@ erDiagram
         datetime removed_at
     }
 
-    PROJECT_TOOL {
+    PROJECT_TOOLS {
         int project_tool_id PK
         int project_id FK
         int pattern_tool_id FK
@@ -129,15 +135,16 @@ erDiagram
         datetime removed_at
     }
 
-    PROJECT_MATERIAL {
+    PROJECT_MATERIALS {
         int pattern_material_id PK, FK
         int project_id PK, FK
     }
 
-    STASH_YARN {
+    STASH_YARNS {
         int stash_yarn_id PK
         varchar username FK
         int yarn_id FK
+        varchar dye_lot
         boolean is_scrap
         int scrap_yardage
         int quantity
@@ -146,7 +153,7 @@ erDiagram
         datetime removed_at
     }
 
-    STASH_TOOL {
+    STASH_TOOLS {
         int stash_tool_id PK
         varchar username FK
         int tool_id FK
@@ -156,7 +163,7 @@ erDiagram
         datetime removed_at
     }
 
-    MILESTONE {
+    MILESTONES {
         int milestone_id PK
         int project_id FK
         text note
@@ -166,7 +173,7 @@ erDiagram
         datetime updated_at
     }
 
-    PHOTO {
+    PHOTOS {
         int photo_id PK
         int project_id FK
         int milestone_id FK
@@ -176,7 +183,7 @@ erDiagram
         datetime updated_at
     }
 
-    PROJECT_RESOURCE_LOG {
+    PROJECT_RESOURCE_LOGS {
         int log_id PK
         int project_id FK
         varchar resource_type
@@ -186,7 +193,7 @@ erDiagram
         datetime created_at
     }
 
-    USER_LOG {
+    USER_LOGS {
         int user_log_id PK
         varchar username FK
         varchar action
@@ -195,62 +202,65 @@ erDiagram
         datetime created_at
     }
 
-    USER ||--o{ ROLE : has
-    USER ||--o{ PATTERN : owns
-    USER ||--o{ PROJECT : owns
-    USER ||--o{ STASH_YARN : owns
-    USER ||--o{ STASH_TOOL : owns
-    USER ||--o{ USER_LOG : generates
+    USERS ||--o{ ROLES : has
+    USERS ||--o{ PATTERNS : owns
+    USERS ||--o{ PROJECTS : owns
+    USERS ||--o{ TAGS : owns
+    USERS ||--o{ STASH_YARNS : owns
+    USERS ||--o{ STASH_TOOLS : owns
+    USERS ||--o{ USER_LOGS : generates
 
-    PATTERN ||--o{ PROJECT : used_for
-    PATTERN ||--o{ PATTERN_TAG : has
-    TAG ||--o{ PATTERN_TAG : labels
-    PATTERN ||--o{ PATTERN_YARN : needs
-    YARN ||--o{ PATTERN_YARN : suggested_for
-    PATTERN ||--o{ PATTERN_TOOL : needs
-    PATTERN ||--o{ PATTERN_MATERIAL : may_need
+    PATTERNS ||--o{ PROJECTS : used_for
+    PATTERNS ||--o{ PATTERN_TAGS : has
+    TAGS ||--o{ PATTERN_TAGS : labels
+    PROJECTS ||--o{ PROJECT_TAGS : has
+    TAGS ||--o{ PROJECT_TAGS : labels
+    PATTERNS ||--o{ PATTERN_YARNS : needs
+    YARNS ||--o{ PATTERN_YARNS : suggested_for
+    PATTERNS ||--o{ PATTERN_TOOLS : needs
+    PATTERNS ||--o{ PATTERN_MATERIALS : may_need
 
-    PROJECT ||--o{ PROJECT_YARN : uses
-    STASH_YARN ||--o{ PROJECT_YARN : assigned_to
-    PATTERN_YARN ||--o{ PROJECT_YARN : assigned_to
-    PROJECT ||--o{ PROJECT_TOOL : uses
-    STASH_TOOL ||--o{ PROJECT_TOOL : uses
-    PATTERN_TOOL ||--o{ PROJECT_TOOL : assigned_to
-    PROJECT ||--o{ PROJECT_MATERIAL : uses
-    PATTERN_MATERIAL ||--o{ PROJECT_MATERIAL : assigned_to
+    PROJECTS ||--o{ PROJECT_YARNS : uses
+    STASH_YARNS ||--o{ PROJECT_YARNS : assigned_to
+    PATTERN_YARNS ||--o{ PROJECT_YARNS : assigned_to
+    PROJECTS ||--o{ PROJECT_TOOLS : uses
+    STASH_TOOLS ||--o{ PROJECT_TOOLS : uses
+    PATTERN_TOOLS ||--o{ PROJECT_TOOLS : assigned_to
+    PROJECTS ||--o{ PROJECT_MATERIALS : uses
+    PATTERN_MATERIALS ||--o{ PROJECT_MATERIALS : assigned_to
 
-    YARN ||--o{ STASH_YARN : defines
-    TOOL ||--o{ STASH_TOOL : defines
+    YARNS ||--o{ STASH_YARNS : defines
+    TOOLS ||--o{ STASH_TOOLS : defines
 
-    PROJECT ||--o{ MILESTONE : tracks
-    PROJECT ||--o{ PHOTO : has
-    MILESTONE ||--o{ PHOTO : may_include
-    PROJECT ||--o{ PROJECT_RESOURCE_LOG : records
+    PROJECTS ||--o{ MILESTONES : tracks
+    PROJECTS ||--o{ PHOTOS : has
+    MILESTONES ||--o{ PHOTOS : may_include
+    PROJECTS ||--o{ PROJECT_RESOURCE_LOGS : records
 ```
 
 ## Design Notes
 
-- `PROJECT_RESOURCE_LOG.resource_type` and `PROJECT_RESOURCE_LOG.resource_id`
+- `PROJECT_RESOURCE_LOGS.resource_type` and `PROJECT_RESOURCE_LOGS.resource_id`
   intentionally form a polymorphic reference instead of a strict foreign key.
   This lets one log table record yarn, tool, material, or other future resource
   changes without needing a separate log table for each resource type.
-- `YARN` and `TOOL` act as reusable catalog-style definitions, while
-  `STASH_YARN` and `STASH_TOOL` represent the specific inventory owned by a
+- `YARNS` and `TOOLS` act as reusable catalog-style definitions, while
+  `STASH_YARNS` and `STASH_TOOLS` represent the specific inventory owned by a
   user. Projects should assign stash records, not the base catalog records, so
   inventory usage can be tracked per user.
-- `PATTERN_YARN`, `PATTERN_TOOL`, and `PATTERN_MATERIAL` describe what a pattern
-  recommends or may require. `PROJECT_YARN`, `PROJECT_TOOL`, and
-  `PROJECT_MATERIAL` describe what a user actually assigns to a specific
+- `PATTERN_YARNS`, `PATTERN_TOOLS`, and `PATTERN_MATERIALS` describe what a pattern
+  recommends or may require. `PROJECT_YARNS`, `PROJECT_TOOLS`, and
+  `PROJECT_MATERIALS` describe what a user actually assigns to a specific
   project.
-- `PATTERN_MATERIAL` is connected with `may_need` because non-yarn materials are
+- `PATTERN_MATERIALS` is connected with `may_need` because non-yarn materials are
   optional checklist items. A project can include only the materials that are
   relevant to that user's version of the pattern.
-- `TAG` and `PATTERN_TAG` support reusable many-to-many pattern tagging, which
-  allows searching and filtering patterns by labels without storing duplicate
-  comma-separated tag text on `PATTERN`.
-- `PHOTO.milestone_id` can be nullable in the physical database. This allows a
+- `TAGS`, `PATTERN_TAGS`, and `PROJECT_TAGS` support reusable user-owned tagging
+  for patterns and projects without storing duplicate comma-separated tag text on
+  either entity. Tag names are scoped to a user instead of being globally unique.
+- `PHOTOS.milestone_id` can be nullable in the physical database. This allows a
   photo to either belong to a specific timeline milestone or appear only in the
   project's general gallery.
 - Admin access does not require separate ownership tables. Admin permissions can
-  come from `ROLE`, while admin views and analytics can query across the same
-  user-owned project, pattern, stash, and log tables.
+  come from `ROLES`, while admin views and analytics can query across the same
+  user-owned projects, patterns, stash, and log tables.
