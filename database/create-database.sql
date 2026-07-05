@@ -76,9 +76,9 @@ create table pattern_tags (
 create table projects (
     project_id int primary key auto_increment,
     username varchar(255) not null,
-    pattern_id int,
+    pattern_id int not null,
     name varchar(255) not null,
-    status varchar(255),
+    status varchar(255) not null default 'Not Started',
     is_public boolean not null default false,
     care varchar(1000),
     gauge varchar(255),
@@ -197,7 +197,7 @@ create table stash_tools (
 create table project_yarns (
     project_yarn_id int primary key auto_increment,
     project_id int not null,
-    pattern_yarn_id int,
+    pattern_yarn_id int not null,
     stash_yarn_id int,
     yardage_used int,
     created_at datetime not null default current_timestamp,
@@ -214,7 +214,7 @@ create table project_yarns (
 create table project_tools (
     project_tool_id int primary key auto_increment,
     project_id int not null,
-    pattern_tool_id int,
+    pattern_tool_id int not null,
     stash_tool_id int,
     created_at datetime not null default current_timestamp,
     removed_at datetime,
@@ -268,7 +268,7 @@ create table project_resource_logs (
     resource_type varchar(255) not null,
     resource_id int not null,
     action varchar(255) not null,
-    quantity_changed int,
+    quantity_changed int not null,
     created_at datetime not null default current_timestamp,
     constraint fk_project_resource_logs_projects
         foreign key (project_id) references projects(project_id) on delete cascade
@@ -279,7 +279,7 @@ create table user_logs (
     username varchar(255) not null,
     action varchar(255) not null,
     entity_type varchar(255),
-    entity_id int,
+    entity_id int not null,
     created_at datetime not null default current_timestamp,
     constraint fk_user_logs_users
         foreign key (username) references users(username) on delete cascade

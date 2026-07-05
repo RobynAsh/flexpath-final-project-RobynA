@@ -52,6 +52,7 @@ public class UserDao {
      * Gets a user by username.
      *
      * @param username The username of the user.
+     *
      * @return User
      */
     public User getUserByUsername(String username) {
@@ -64,7 +65,9 @@ public class UserDao {
 
     /**
      * Creates a new user.
+     *
      * @param user The user to create.
+     *
      * @return User The created user.
      */
     public User createUser(User user) {
@@ -82,6 +85,7 @@ public class UserDao {
      * Updates a user's password.
      *
      * @param user The user to update.
+     *
      * @return User
      */
     public User updatePassword(User user) {
@@ -109,6 +113,7 @@ public class UserDao {
      * Gets all roles for a user.
      *
      * @param username The username of the user.
+     *
      * @return List of String
      */
     public List<String> getRoles(String username) {
@@ -120,6 +125,7 @@ public class UserDao {
      *
      * @param username The username of the user.
      * @param role The role to add.
+     *
      * @return List of String
      */
     public List<String> addRole(String username, String role) {

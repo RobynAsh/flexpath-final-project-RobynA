@@ -9,7 +9,7 @@ public class ProjectYarn {
     private int projectYarnId;
     private int projectId;
     private int patternYarnId;
-    private int stashYarnId;
+    private Integer stashYarnId;
     private int yardageUsed;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -58,11 +58,11 @@ public class ProjectYarn {
         this.patternYarnId = patternYarnId;
     }
 
-    public int getStashYarnId() {
+    public Integer getStashYarnId() {
         return stashYarnId;
     }
 
-    public void setStashYarnId(int stashYarnId) {
+    public void setStashYarnId(Integer stashYarnId) {
         this.stashYarnId = stashYarnId;
     }
 

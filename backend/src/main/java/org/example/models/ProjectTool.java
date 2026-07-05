@@ -9,7 +9,7 @@ public class ProjectTool {
     private int projectToolId;
     private int projectId;
     private int patternToolId;
-    private int stashToolId;
+    private Integer stashToolId;
     private LocalDateTime createdAt;
     private LocalDateTime removedAt;
 
@@ -52,11 +52,11 @@ public class ProjectTool {
         this.patternToolId = patternToolId;
     }
 
-    public int getStashToolId() {
+    public Integer getStashToolId() {
         return stashToolId;
     }
 
-    public void setStashToolId(int stashToolId) {
+    public void setStashToolId(Integer stashToolId) {
         this.stashToolId = stashToolId;
     }
 
