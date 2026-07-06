@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-paper-50: #fff8ed;
+  --color-paper-100: #f7eddd;
+  --color-paper-200: #eadac3;
+  --color-paper-300: #d7bea0;
+
+  --color-olive-50: #f0efdf;
+  --color-olive-100: #d8d3b5;
+  --color-olive-200: #b8b08a;
+  --color-olive-300: #8d8662;
+  --color-olive-400: #6a6f46;
+  --color-olive-500: #555c35;
+  --color-olive-600: #3f4628;
+
+  --color-rose-50: #f8e8e0;
+  --color-rose-100: #efc7b9;
+  --color-rose-200: #df9f8e;
+  --color-rose-300: #c97665;
+  --color-rose-400: #a95748;
+  --color-rose-500: #874235;
+
+  --color-honey-50: #fff1dc;
+  --color-honey-100: #f2d5aa;
+  --color-honey-200: #deb982;
+  --color-honey-300: #c99c5f;
+  --color-honey-400: #9d7540;
+
+  --color-thread-50: #fbf7ef;
+  --color-thread-100: #e9dcc9;
+  --color-thread-200: #cdbb9e;
+  --color-thread-300: #a98f6a;
+  --color-thread-400: #786548;
+
+  --color-ink: #2f261d;
+  --color-ink-soft: #4d452f;
+  --color-muted: #7f786d;
+  --color-stitch: #dba89a;
+  --color-line: #c8ad8e;
+
+  --color-background: var(--color-paper-100);
+  --color-surface: var(--color-paper-50);
+  --color-surface-muted: var(--color-paper-100);
+  --color-primary: var(--color-olive-500);
+  --color-primary-hover: var(--color-olive-600);
+  --color-primary-foreground: var(--color-paper-50);
+  --color-secondary: var(--color-rose-200);
+  --color-secondary-hover: var(--color-rose-300);
+  --color-accent: var(--color-honey-200);
+  --color-accent-foreground: var(--color-ink);
+  --color-border: var(--color-line);
+  --color-input: var(--color-paper-300);
+  --color-ring: var(--color-olive-300);
+}
