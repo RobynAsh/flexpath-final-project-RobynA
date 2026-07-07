@@ -54,7 +54,6 @@
   --color-border: var(--color-line);
   --color-input: var(--color-paper-300);
   --color-ring: var(--color-olive-300);
-<<<<<<< HEAD
 
   --shadow-card:
     0 0.5rem 1.5rem rgb(85 92 53 / 0.12),
@@ -69,6 +68,20 @@
     font-weight: 500;
     color: theme(--color-ink);
   }
-=======
->>>>>>> origin/main
+}
+
+@layer components {
+  .nav-link-text {
+    @apply pt-0;
+  }
+  .nav-link-overhang {
+    @apply h-2.5;
+  }
+
+  .nav-link-tab:hover .nav-link-text {
+    @apply pt-3;
+  }
+  .nav-link-tab:hover .nav-link-overhang {
+    height: 22px;
+  }
 }
