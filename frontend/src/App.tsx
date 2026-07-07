@@ -1,5 +1,7 @@
+import { BaseLayout } from './components/layouts/BaseLayout/BaseLayout'
+
 function App() {
-  return <p>Hello World</p>
+  return <BaseLayout />
 }
 
 export default App
