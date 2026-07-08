@@ -34,7 +34,7 @@ create table roles (
     role varchar(250) not null,
     primary key (username, role),
     constraint fk_roles_users
-        foreign key (username) references users(username) on delete cascade
+       foreign key (username) references users(username) on delete cascade
 );
 
 create table patterns (
@@ -104,63 +104,63 @@ create table project_tags (
 );
 
 create table yarns (
-    yarn_id int primary key auto_increment,
-    brand varchar(255),
-    colorway varchar(255),
-    color varchar(255),
-    weight varchar(255),
-    fiber varchar(255),
-    style varchar(255),
-    yardage int,
-    grams float,
-    image_url varchar(1000),
-    created_at datetime not null default current_timestamp,
-    updated_at datetime not null default current_timestamp on update current_timestamp
+   yarn_id int primary key auto_increment,
+   brand varchar(255),
+   colorway varchar(255),
+   color varchar(255),
+   weight varchar(255),
+   fiber varchar(255),
+   style varchar(255),
+   yardage int,
+   grams float,
+   image_url varchar(1000),
+   created_at datetime not null default current_timestamp,
+   updated_at datetime not null default current_timestamp on update current_timestamp
 );
 
 create table tools (
-    tool_id int primary key auto_increment,
-    tool_type varchar(255) not null,
-    brand varchar(255),
-    size_mm float,
-    material varchar(255),
-    created_at datetime not null default current_timestamp,
-    updated_at datetime not null default current_timestamp on update current_timestamp
+   tool_id int primary key auto_increment,
+   tool_type varchar(255) not null,
+   brand varchar(255),
+   size_mm float,
+   material varchar(255),
+   created_at datetime not null default current_timestamp,
+   updated_at datetime not null default current_timestamp on update current_timestamp
 );
 
 create table pattern_yarns (
-    pattern_yarn_id int primary key auto_increment,
-    pattern_id int not null,
-    suggested_yarn_id int,
-    description varchar(1000),
-    weight int,
-    yardage int,
-    grams float,
-    constraint fk_pattern_yarns_patterns
-        foreign key (pattern_id) references patterns(pattern_id) on delete cascade,
-    constraint fk_pattern_yarns_yarns
-        foreign key (suggested_yarn_id) references yarns(yarn_id) on delete set null
+   pattern_yarn_id int primary key auto_increment,
+   pattern_id int not null,
+   suggested_yarn_id int,
+   description varchar(1000),
+   weight int,
+   yardage int,
+   grams float,
+   constraint fk_pattern_yarns_patterns
+       foreign key (pattern_id) references patterns(pattern_id) on delete cascade,
+   constraint fk_pattern_yarns_yarns
+       foreign key (suggested_yarn_id) references yarns(yarn_id) on delete set null
 );
 
 create table pattern_tools (
-    pattern_tool_id int primary key auto_increment,
-    pattern_id int not null,
-    tool_type varchar(255) not null,
-    size_mm float,
-    constraint fk_pattern_tools_patterns
-        foreign key (pattern_id) references patterns(pattern_id) on delete cascade
+   pattern_tool_id int primary key auto_increment,
+   pattern_id int not null,
+   tool_type varchar(255) not null,
+   size_mm float,
+   constraint fk_pattern_tools_patterns
+       foreign key (pattern_id) references patterns(pattern_id) on delete cascade
 );
 
 create table pattern_materials (
-    pattern_material_id int primary key auto_increment,
-    pattern_id int not null,
-    name varchar(255) not null,
-    description varchar(1000),
-    quantity int,
-    created_at datetime not null default current_timestamp,
-    updated_at datetime not null default current_timestamp on update current_timestamp,
-    constraint fk_pattern_materials_patterns
-        foreign key (pattern_id) references patterns(pattern_id) on delete cascade
+   pattern_material_id int primary key auto_increment,
+   pattern_id int not null,
+   name varchar(255) not null,
+   description varchar(1000),
+   quantity int,
+   created_at datetime not null default current_timestamp,
+   updated_at datetime not null default current_timestamp on update current_timestamp,
+   constraint fk_pattern_materials_patterns
+       foreign key (pattern_id) references patterns(pattern_id) on delete cascade
 );
 
 create table stash_yarns (
@@ -181,17 +181,17 @@ create table stash_yarns (
 );
 
 create table stash_tools (
-    stash_tool_id int primary key auto_increment,
-    username varchar(255) not null,
-    tool_id int not null,
-    quantity int not null default 1,
-    created_at datetime not null default current_timestamp,
-    updated_at datetime not null default current_timestamp on update current_timestamp,
-    removed_at datetime,
-    constraint fk_stash_tools_users
-        foreign key (username) references users(username) on delete cascade,
-    constraint fk_stash_tools_tools
-        foreign key (tool_id) references tools(tool_id) on delete cascade
+     stash_tool_id int primary key auto_increment,
+     username varchar(255) not null,
+     tool_id int not null,
+     quantity int not null default 1,
+     created_at datetime not null default current_timestamp,
+     updated_at datetime not null default current_timestamp on update current_timestamp,
+     removed_at datetime,
+     constraint fk_stash_tools_users
+         foreign key (username) references users(username) on delete cascade,
+     constraint fk_stash_tools_tools
+         foreign key (tool_id) references tools(tool_id) on delete cascade
 );
 
 create table project_yarns (
@@ -212,28 +212,28 @@ create table project_yarns (
 );
 
 create table project_tools (
-    project_tool_id int primary key auto_increment,
-    project_id int not null,
-    pattern_tool_id int not null,
-    stash_tool_id int,
-    created_at datetime not null default current_timestamp,
-    removed_at datetime,
-    constraint fk_project_tools_projects
-        foreign key (project_id) references projects(project_id) on delete cascade,
-    constraint fk_project_tools_pattern_tools
-        foreign key (pattern_tool_id) references pattern_tools(pattern_tool_id) on delete cascade,
-    constraint fk_project_tools_stash_tools
-        foreign key (stash_tool_id) references stash_tools(stash_tool_id) on delete set null
+   project_tool_id int primary key auto_increment,
+   project_id int not null,
+   pattern_tool_id int not null,
+   stash_tool_id int,
+   created_at datetime not null default current_timestamp,
+   removed_at datetime,
+   constraint fk_project_tools_projects
+       foreign key (project_id) references projects(project_id) on delete cascade,
+   constraint fk_project_tools_pattern_tools
+       foreign key (pattern_tool_id) references pattern_tools(pattern_tool_id) on delete cascade,
+   constraint fk_project_tools_stash_tools
+       foreign key (stash_tool_id) references stash_tools(stash_tool_id) on delete set null
 );
 
 create table project_materials (
-    pattern_material_id int not null,
-    project_id int not null,
-    primary key (pattern_material_id, project_id),
-    constraint fk_project_materials_pattern_materials
-        foreign key (pattern_material_id) references pattern_materials(pattern_material_id) on delete cascade,
-    constraint fk_project_materials_projects
-        foreign key (project_id) references projects(project_id) on delete cascade
+   pattern_material_id int not null,
+   project_id int not null,
+   primary key (pattern_material_id, project_id),
+   constraint fk_project_materials_pattern_materials
+       foreign key (pattern_material_id) references pattern_materials(pattern_material_id) on delete cascade,
+   constraint fk_project_materials_projects
+       foreign key (project_id) references projects(project_id) on delete cascade
 );
 
 create table milestones (
@@ -263,30 +263,27 @@ create table photos (
 );
 
 create table project_resource_logs (
-    log_id int primary key auto_increment,
-    project_id int not null,
-    resource_type varchar(255) not null,
-    resource_id int not null,
-    action varchar(255) not null,
-    quantity_changed int not null,
-    created_at datetime not null default current_timestamp,
-    constraint fk_project_resource_logs_projects
-        foreign key (project_id) references projects(project_id) on delete cascade
+   log_id int primary key auto_increment,
+   project_id int not null,
+   resource_type varchar(255) not null,
+   resource_id int not null,
+   action varchar(255) not null,
+   quantity_changed int not null,
+   created_at datetime not null default current_timestamp,
+   constraint fk_project_resource_logs_projects
+       foreign key (project_id) references projects(project_id) on delete cascade
 );
 
 create table user_logs (
-    user_log_id int primary key auto_increment,
-    username varchar(255) not null,
-    action varchar(255) not null,
-    entity_type varchar(255),
-    entity_id int not null,
-    created_at datetime not null default current_timestamp,
-    constraint fk_user_logs_users
-        foreign key (username) references users(username) on delete cascade
+   user_log_id int primary key auto_increment,
+   username varchar(255) not null,
+   action varchar(255) not null,
+   entity_type varchar(255),
+   entity_id int not null,
+   created_at datetime not null default current_timestamp,
+   constraint fk_user_logs_users
+       foreign key (username) references users(username) on delete cascade
 );
 
-insert into users (username, password) values ('admin', '$2a$10$tBTfzHzjmQVKza3VSa5lsOX6/iL93xPVLlLXYg2FhT6a.jb1o6VDq');
-insert into roles (username, role) values ('admin', 'ADMIN');
-
-insert into users (username, password) values ('user', '$2a$10$tBTfzHzjmQVKza3VSa5lsOX6/iL93xPVLlLXYg2FhT6a.jb1o6VDq');
-insert into roles (username, role) values ('user', 'USER');
+insert into users (username, password) values ('test-admin', 'admin');
+insert into roles (username, role) values ('test-admin', 'ADMIN');
