@@ -11,7 +11,7 @@ export const Login = () => {
   return (
     <BaseLayout containerClassName="sm:py-12">
       <div className="flex w-full flex-col items-center justify-center sm:flex-row">
-        <div className="hidden grow lg:flex">
+        <div className="hidden w-1/2 grow items-center justify-center lg:flex">
           <img
             src="/assets/hero-polaroid.png"
             alt="Hero Polaroid"
@@ -19,13 +19,13 @@ export const Login = () => {
             className="pointer-events-none"
           />
         </div>
-        <div className="lily-pad-container flex min-w-11/12 flex-col gap-3 rounded-2xl border-2 border-dashed border-rose-200 p-4 sm:min-w-0 sm:grow sm:px-4 sm:pt-10 md:px-12 lg:max-w-[50%] xl:px-20">
+        <div className="lily-pad-container flex min-w-11/12 flex-col gap-3 rounded-2xl border-2 border-dashed border-rose-200 p-4 sm:min-w-0 sm:grow sm:px-4 sm:pt-10 lg:w-1/2 lg:max-w-[50%] lg:px-12 xl:px-20">
           {/* Welcome Back Section */}
           <div className="flex flex-col gap-3 text-center">
-            <h1 className="text-4xl font-bold text-olive-400 sm:text-5xl lg:text-3xl xl:text-4xl">
+            <h1 className="text-4xl font-bold text-olive-400 sm:text-5xl lg:text-5xl">
               Welcome Back!
             </h1>
-            <p className="text-lg sm:text-2xl lg:text-lg xl:text-2xl">
+            <p className="text-lg sm:text-2xl">
               Log in to continue your creative journey.
             </p>
             <div className="w-full">
