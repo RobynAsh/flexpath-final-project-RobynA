@@ -1,3 +1,6 @@
+import { IconDefinition } from '@fortawesome/free-regular-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+
 export const TextField = ({
   id,
   type = 'text',
@@ -9,25 +12,30 @@ export const TextField = ({
   id: string
   type?: string
   placeholder?: string
-  leftIcon?: string
-  rightIcon?: string
+  leftIcon?: IconDefinition
+  rightIcon?: IconDefinition
   rightIconOnClick?: () => void
 }) => {
   return (
-    <div className="border-thread-200 flex items-center gap-2 rounded-lg border-2 p-2">
+    <div className="border-thread-200 flex items-center gap-1 rounded-lg border-2 px-1 py-2 sm:gap-2 sm:p-2">
       {leftIcon && (
-        <i className={`fa-regular ${leftIcon} text-xl text-olive-400`} />
+        <FontAwesomeIcon
+          icon={leftIcon}
+          className="text-lg text-olive-400 sm:text-xl"
+        />
       )}
       <input
         type={type}
         id={id}
-        className="grow bg-transparent text-xl outline-none"
+        className="grow bg-transparent text-lg outline-none sm:text-xl"
         placeholder={placeholder}
       />
       {rightIcon && (
         <div onClick={rightIconOnClick}>
-          <i
-            className={`fa-regular ${rightIcon} text-xl text-olive-400 ${rightIconOnClick ? 'cursor-pointer transition-colors duration-300 hover:text-olive-500' : ''}`}
+          <FontAwesomeIcon
+            icon={rightIcon}
+            className={`text-lg text-olive-400 sm:text-xl ${rightIconOnClick ? 'cursor-pointer transition-colors duration-300 hover:text-olive-500' : ''}`}
+            onClick={rightIconOnClick}
           />
         </div>
       )}

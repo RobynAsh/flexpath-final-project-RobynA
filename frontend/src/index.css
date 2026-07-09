@@ -87,12 +87,20 @@
   }
 
   .lily-pad-container::after {
-    @apply absolute -top-10 -right-10 h-20 w-20 p-1;
+    @apply absolute top-10 right-10 hidden h-20 w-20 p-1 sm:block lg:top-5 lg:right-5 lg:h-15 lg:w-15 xl:top-5 xl:right-5 xl:h-20 xl:w-20 2xl:top-8 2xl:right-9 2xl:h-25 2xl:w-25;
     content: '';
     background-image: url('/assets/lily-pad-patch.png');
     background-size: 99%;
     background-position: center;
     background-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  .footer {
+    height: 65px;
+    background-image: url('/assets/footer-scallop-trim.png');
+    background-position: top;
+    background-repeat: repeat-x;
     pointer-events: none;
   }
 }

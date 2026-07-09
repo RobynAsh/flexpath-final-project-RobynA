@@ -1,4 +1,4 @@
-import { Container } from '../../atoms/Container'
+import { Container } from '../../atoms/Container/Container'
 import { Footer } from '../Footer/Footer'
 import { Header } from '../Header/Header'
 

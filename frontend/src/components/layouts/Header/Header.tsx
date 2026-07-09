@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Container } from '../../atoms/Container'
+import { Container } from '../../atoms/Container/Container'
 import { HeaderNavLink } from './HeaderNavLink'
+import { faBars } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export const Header = () => {
   const [isMounted, setIsMounted] = useState(false)
@@ -51,7 +53,10 @@ export const Header = () => {
                 setMobileMenuClicked(!mobileMenuClicked)
               }}
             >
-              <i className="fa-solid fa-bars text-2xl text-rose-50 transition-colors duration-300 group-hover:text-rose-500"></i>
+              <FontAwesomeIcon
+                icon={faBars}
+                className="text-2xl text-rose-50 transition-colors duration-300 group-hover:text-rose-500"
+              />
             </div>
           </div>
           <div
