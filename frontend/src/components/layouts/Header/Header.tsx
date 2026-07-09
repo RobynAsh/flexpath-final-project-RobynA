@@ -41,7 +41,7 @@ export const Header = () => {
                 alt="Frog Log Logo"
                 className="h-15 w-15"
               />
-              <h1 className="font-display text-4xl font-bold text-rose-50 transition-colors duration-300 group-hover:text-rose-500">
+              <h1 className="text-4xl font-bold text-rose-50 transition-colors duration-300 group-hover:text-rose-500">
                 Frog Log
               </h1>
             </div>

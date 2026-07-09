@@ -68,23 +68,31 @@
     font-optical-sizing: auto;
     font-style: normal;
     font-weight: 500;
-    color: theme(--color-ink);
+    color: theme(--color-ink-soft);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
   }
 }
 
 @layer components {
-  .nav-link-text {
-    @apply pt-0;
-  }
-  .nav-link-overhang {
-    @apply h-2.5;
+  .lily-pad-container {
+    position: relative;
   }
 
-  .nav-link-tab:hover .nav-link-text {
-    @apply md:pt-3;
-  }
-  .nav-link-tab:hover .nav-link-overhang {
-    height: 22px;
-    @apply bg-thread-300;
+  .lily-pad-container::after {
+    @apply absolute -top-10 -right-10 h-20 w-20 p-1;
+    content: '';
+    background-image: url('/assets/lily-pad-patch.png');
+    background-size: 99%;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
   }
 }
