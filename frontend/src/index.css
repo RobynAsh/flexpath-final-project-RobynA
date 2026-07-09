@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Patrick+Hand&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Cause', cursive;
+  --font-display: 'Dancing Script', cursive;
+  --font-hand: 'Patrick Hand', cursive;
 
   --color-paper-50: #fff8ed;
   --color-paper-100: #f7eddd;
@@ -62,7 +64,7 @@
 
 @layer base {
   body {
-    font-family: theme(--font-sans);
+    font-family: var(--font-hand);
     font-optical-sizing: auto;
     font-style: normal;
     font-weight: 500;
@@ -79,9 +81,10 @@
   }
 
   .nav-link-tab:hover .nav-link-text {
-    @apply pt-3;
+    @apply md:pt-3;
   }
   .nav-link-tab:hover .nav-link-overhang {
     height: 22px;
+    @apply bg-thread-300;
   }
 }

@@ -1,7 +1,7 @@
-import { BaseLayout } from './components/layouts/BaseLayout/BaseLayout'
+import { Login } from './components/pages/Login/Login'
 
 function App() {
-  return <BaseLayout />
+  return <Login />
 }
 
 export default App
