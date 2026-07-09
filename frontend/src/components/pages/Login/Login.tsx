@@ -16,6 +16,7 @@ export const Login = () => {
             src="/assets/hero-polaroid.png"
             alt="Hero Polaroid"
             width="75%"
+            className="pointer-events-none"
           />
         </div>
         <div className="lily-pad-container flex min-w-11/12 flex-col gap-3 rounded-2xl border-2 border-dashed border-rose-200 p-4 sm:min-w-0 sm:grow sm:px-4 sm:pt-10 md:px-12 lg:max-w-[50%] xl:px-20">
