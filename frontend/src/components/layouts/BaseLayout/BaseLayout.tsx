@@ -3,15 +3,17 @@ import { Footer } from '../Footer/Footer'
 import { Header } from '../Header/Header'
 
 export const BaseLayout = ({
-  children,
+  isAuthenticated,
   containerClassName,
+  children,
 }: {
-  children?: React.ReactNode
+  isAuthenticated: boolean
   containerClassName?: string
+  children?: React.ReactNode
 }) => {
   return (
     <div className="bg-background flex min-h-screen flex-col">
-      <Header />
+      <Header isAuthenticated={isAuthenticated} />
       <Container className={`grow ${containerClassName || ''}`}>
         {children}
       </Container>

@@ -1,7 +1,7 @@
-import { Login } from './components/pages/Login/Login'
+import { Router } from './components/layouts/Router/Router'
 
 function App() {
-  return <Login />
+  return <Router />
 }
 
 export default App

@@ -1,6 +1,15 @@
-export const HeaderNavLink = ({ children }: { children?: React.ReactNode }) => {
+export const HeaderNavLink = ({
+  onClick,
+  children,
+}: {
+  onClick: () => void
+  children?: React.ReactNode
+}) => {
   return (
-    <div className="group nav-link-tab bg-thread-200 hover:bg-thread-300 relative z-20 flex cursor-pointer rounded p-1 transition-colors duration-300 md:rounded-none md:px-1 md:py-0">
+    <div
+      onClick={onClick}
+      className="group nav-link-tab bg-thread-200 hover:bg-thread-300 relative z-20 flex cursor-pointer rounded p-1 transition-colors duration-300 md:rounded-none md:px-1 md:py-0"
+    >
       <div className="border-thread-100 flex grow items-center justify-center border border-dashed p-1 md:border-t-0 md:border-r md:border-b-0 md:border-l md:px-2 md:py-0">
         <div className="pt-0 transition-all duration-300 group-hover:md:pt-3">
           {children}

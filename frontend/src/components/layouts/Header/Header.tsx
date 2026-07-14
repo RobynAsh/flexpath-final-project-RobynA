@@ -3,8 +3,11 @@ import { Container } from '../../atoms/Container/Container'
 import { HeaderNavLink } from './HeaderNavLink'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useNavigate } from 'react-router-dom'
 
-export const Header = () => {
+export const Header = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+  const navigate = useNavigate()
+
   const [isMounted, setIsMounted] = useState(false)
 
   const [mobileMenuClicked, setMobileMenuClicked] = useState(false)
@@ -59,13 +62,19 @@ export const Header = () => {
               />
             </div>
           </div>
-          <div
-            className={`flex flex-col gap-4 md:flex-row ${isMobileMenuOpen ? 'max-h-48 pt-2 md:pt-0' : 'max-h-0 pt-0'} ${isMobileTransitionSet ? 'transition-all' : ''} overflow-hidden md:max-h-full md:overflow-visible`}
-          >
-            <HeaderNavLink>Link One</HeaderNavLink>
-            <HeaderNavLink>Link Two</HeaderNavLink>
-            <HeaderNavLink>Link Three</HeaderNavLink>
-          </div>
+          {isAuthenticated && (
+            <div
+              className={`flex flex-col gap-4 md:flex-row ${isMobileMenuOpen ? 'max-h-48 pt-2 md:pt-0' : 'max-h-0 pt-0'} ${isMobileTransitionSet ? 'transition-all' : ''} overflow-hidden md:max-h-full md:overflow-visible`}
+            >
+              <HeaderNavLink
+                onClick={() => {
+                  navigate('/logout')
+                }}
+              >
+                Logout
+              </HeaderNavLink>
+            </div>
+          )}
         </Container>
       </div>
     </div>
