@@ -1,13 +1,62 @@
 import { faFrog, faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import { Button } from '../../atoms/Button/Button'
 import { Checkbox } from '../../form/Checkbox/Checkbox'
-import { EmailAddress } from '../../form/EmailAddress/EmailAddress'
+import { Username } from '../../form/Username/Username'
 import { Password } from '../../form/Password/Password'
 import { BaseLayout } from '../../layouts/BaseLayout/BaseLayout'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { DashBorder } from '../../atoms/DashBorder/DashBorder'
+import { FormEventHandler, useState } from 'react'
+
+type LoginResponse = {
+  accessToken: {
+    token: string
+  }
+}
 
 export const Login = () => {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [loginError, setLoginError] = useState('')
+
+  const onLogin: FormEventHandler<HTMLFormElement> = async (event) => {
+    event.preventDefault()
+    setLoginError('')
+
+    try {
+      const response = await fetch('/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Incorrect username or password.')
+        }
+
+        throw new Error('Unable to log in right now.')
+      }
+
+      const { accessToken }: LoginResponse = await response.json()
+      const tokenStorage = rememberMe ? localStorage : sessionStorage
+
+      tokenStorage.setItem('token', accessToken.token)
+    } catch (error) {
+      setLoginError(
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred.',
+      )
+    }
+  }
+
   return (
     <BaseLayout containerClassName="sm:py-12">
       <div className="flex w-full flex-col items-center justify-center sm:flex-row">
@@ -40,10 +89,26 @@ export const Login = () => {
           </div>
 
           {/* Login Form Section */}
-          <div className="flex flex-col gap-3">
-            <EmailAddress />
-            <Password />
-            <Checkbox id="remember-me" label="Remember Me" />
+          <form onSubmit={onLogin} className="flex flex-col gap-3">
+            <Username
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+            />
+            <Password
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <Checkbox
+              id="remember-me"
+              label="Remember Me"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+            />
+            {loginError && (
+              <p role="alert" className="text-center text-rose-600">
+                {loginError}
+              </p>
+            )}
             <Button
               type="submit"
               variant="primary"
@@ -62,7 +127,7 @@ export const Login = () => {
               <FontAwesomeIcon icon={faUserPlus} className="text-xl" />
               <span>Create an Account</span>
             </Button>
-          </div>
+          </form>
         </div>
       </div>
     </BaseLayout>

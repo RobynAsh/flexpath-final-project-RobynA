@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ChangeEventHandler } from 'react'
 import { TextField } from '../TextField/TextField'
 import {
   faEye,
@@ -6,7 +6,13 @@ import {
   faUserLock,
 } from '@fortawesome/free-solid-svg-icons'
 
-export const Password = () => {
+export const Password = ({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: ChangeEventHandler<HTMLInputElement>
+}) => {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
@@ -21,10 +27,12 @@ export const Password = () => {
         placeholder="Enter your password"
         leftIcon={faUserLock}
         rightIcon={showPassword ? faEyeSlash : faEye}
+        value={value}
+        onChange={onChange}
         rightIconOnClick={() => {
-          console.log('yo')
           setShowPassword(!showPassword)
         }}
+        required
       />
     </div>
   )
