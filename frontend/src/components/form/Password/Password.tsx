@@ -7,9 +7,13 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 export const Password = ({
+  id,
+  label,
   value,
   onChange,
 }: {
+  id: string
+  label: string
   value: string
   onChange: ChangeEventHandler<HTMLInputElement>
 }) => {
@@ -17,12 +21,12 @@ export const Password = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor="password" className="text-lg sm:text-xl">
-        Password
+      <label htmlFor={id} className="text-lg sm:text-xl">
+        {label}
       </label>
       {/* Input */}
       <TextField
-        id="password"
+        id={id}
         type={showPassword ? 'text' : 'password'}
         placeholder="Enter your password"
         leftIcon={faUserLock}

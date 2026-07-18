@@ -6,6 +6,7 @@ import { BaseLayout } from '../BaseLayout/BaseLayout'
 import { useState } from 'react'
 import { getStoredJWTToken } from '../../../helpers/loginHelpers'
 import { Logout } from '../../pages/Logout/Logout'
+import { CreateAccount } from '../../pages/CreateAccount/CreateAccount'
 
 export const Router = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getStoredJWTToken())
@@ -14,6 +15,11 @@ export const Router = () => {
     <BrowserRouter>
       <BaseLayout isAuthenticated={isAuthenticated}>
         <Routes>
+          <Route
+            path="/create-account"
+            element={<CreateAccount isAuthenticated={isAuthenticated} />}
+          />
+
           <Route
             path="/login"
             element={
