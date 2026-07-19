@@ -1,4 +1,4 @@
-import { FormEventHandler, useState } from 'react'
+import { useState } from 'react'
 import { Password } from '../../form/Password/Password'
 import { Username } from '../../form/Username/Username'
 import { PreLoginLayout } from '../../layouts/PreLoginLayout/PreLoginLayout'
@@ -7,6 +7,13 @@ import { DashBorder } from '../../atoms/DashBorder/DashBorder'
 import { faFrog, faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+
+type CreateAccountForm = {
+  username: string
+  password: string
+  confirmPassword: string
+}
 
 export const CreateAccount = ({
   isAuthenticated,
@@ -16,12 +23,30 @@ export const CreateAccount = ({
   const navigate = useNavigate()
 
   const [createAccountError, setCreateAccountError] = useState('')
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { errors },
+  } = useForm<CreateAccountForm>()
 
-  const onCreateAccount: FormEventHandler<HTMLFormElement> = async (event) => {
-    event.preventDefault()
+  const usernameField = register('username', {
+    required: 'Username is required.',
+  })
+  const passwordField = register('password', {
+    required: 'Password is required.',
+    validate: (password) =>
+      password === getValues('confirmPassword') || 'Passwords do not match.',
+    deps: 'confirmPassword',
+  })
+  const confirmPasswordField = register('confirmPassword', {
+    required: 'Please confirm your password.',
+    validate: (confirmPassword) =>
+      confirmPassword === getValues('password') || 'Passwords do not match.',
+    deps: 'password',
+  })
+
+  const onCreateAccount = async ({ username, password }: CreateAccountForm) => {
     setCreateAccountError('')
 
     try {
@@ -59,22 +84,26 @@ export const CreateAccount = ({
       title="Welcome!"
       subtitle="Create an account to start your creative journey."
     >
-      <form onSubmit={onCreateAccount} className="flex flex-col gap-3">
-        <Username
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-        />
+      <form
+        noValidate
+        onSubmit={handleSubmit(onCreateAccount, () => {
+          setCreateAccountError('')
+        })}
+        className="flex flex-col gap-3"
+      >
+        <Username {...usernameField} error={errors.username?.message} />
         <Password
+          {...passwordField}
           id="password"
           label="Password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          error={errors.password?.message}
         />
         <Password
+          {...confirmPasswordField}
           id="confirmPassword"
           label="Confirm Password"
-          value={confirmPassword}
-          onChange={(event) => setConfirmPassword(event.target.value)}
+          placeholder="Confirm your password"
+          error={errors.confirmPassword?.message}
         />
         {createAccountError && (
           <p role="alert" className="text-center text-rose-600">

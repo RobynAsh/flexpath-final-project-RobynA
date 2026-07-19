@@ -5,10 +5,11 @@ import { Username } from '../../form/Username/Username'
 import { Password } from '../../form/Password/Password'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { DashBorder } from '../../atoms/DashBorder/DashBorder'
-import { Dispatch, FormEventHandler, SetStateAction, useState } from 'react'
+import { Dispatch, SetStateAction, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { clearStoredJWTToken } from '../../../helpers/loginHelpers'
 import { PreLoginLayout } from '../../layouts/PreLoginLayout/PreLoginLayout'
+import { useForm } from 'react-hook-form'
 
 export type LoginResponse = {
   accessToken: {
@@ -20,6 +21,11 @@ type LoginLocationState = {
   createdAccount?: boolean
 } | null
 
+type LoginForm = {
+  username: string
+  password: string
+}
+
 export const Login = ({
   isAuthenticated,
   setIsAuthenticated,
@@ -30,16 +36,25 @@ export const Login = ({
   const navigate = useNavigate()
   const location = useLocation()
 
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [loginError, setLoginError] = useState('')
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>()
+
+  const usernameField = register('username', {
+    required: 'Username is required.',
+  })
+  const passwordField = register('password', {
+    required: 'Password is required.',
+  })
 
   const didUserCreateAccount = (location.state as LoginLocationState)
     ?.createdAccount
 
-  const onLogin: FormEventHandler<HTMLFormElement> = async (event) => {
-    event.preventDefault()
+  const onLogin = async ({ username, password }: LoginForm) => {
     setLoginError('')
 
     try {
@@ -93,16 +108,19 @@ export const Login = ({
           Account created successfully! Please log-in to get started.
         </p>
       )}
-      <form onSubmit={onLogin} className="flex flex-col gap-3">
-        <Username
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-        />
+      <form
+        noValidate
+        onSubmit={handleSubmit(onLogin, () => {
+          setLoginError('')
+        })}
+        className="flex flex-col gap-3"
+      >
+        <Username {...usernameField} error={errors.username?.message} />
         <Password
+          {...passwordField}
           id="password"
           label="Password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          error={errors.password?.message}
         />
         <Checkbox
           id="remember-me"

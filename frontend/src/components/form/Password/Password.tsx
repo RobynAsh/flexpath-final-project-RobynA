@@ -1,4 +1,4 @@
-import { useState, type ChangeEventHandler } from 'react'
+import { forwardRef, useState, type ComponentPropsWithoutRef } from 'react'
 import { TextField } from '../TextField/TextField'
 import {
   faEye,
@@ -6,38 +6,37 @@ import {
   faUserLock,
 } from '@fortawesome/free-solid-svg-icons'
 
-export const Password = ({
-  id,
-  label,
-  value,
-  onChange,
-}: {
+interface PasswordProps extends Omit<
+  ComponentPropsWithoutRef<'input'>,
+  'id' | 'type'
+> {
   id: string
   label: string
-  value: string
-  onChange: ChangeEventHandler<HTMLInputElement>
-}) => {
-  const [showPassword, setShowPassword] = useState(false)
+  error?: string
+}
 
-  return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-lg sm:text-xl">
-        {label}
-      </label>
-      {/* Input */}
+export const Password = forwardRef<HTMLInputElement, PasswordProps>(
+  function Password(
+    { id, label, placeholder = 'Enter your password', error, ...inputProps },
+    ref,
+  ) {
+    const [showPassword, setShowPassword] = useState(false)
+
+    return (
       <TextField
+        {...inputProps}
+        ref={ref}
         id={id}
+        label={label}
+        error={error}
         type={showPassword ? 'text' : 'password'}
-        placeholder="Enter your password"
+        placeholder={placeholder}
         leftIcon={faUserLock}
         rightIcon={showPassword ? faEyeSlash : faEye}
-        value={value}
-        onChange={onChange}
         rightIconOnClick={() => {
           setShowPassword(!showPassword)
         }}
-        required
       />
-    </div>
-  )
-}
+    )
+  },
+)
