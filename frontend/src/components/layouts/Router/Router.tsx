@@ -3,43 +3,44 @@ import { Home } from '../../pages/Home/Home'
 import { Login } from '../../pages/Login/Login'
 import { ProtectedRoute } from './ProtectedRoute'
 import { BaseLayout } from '../BaseLayout/BaseLayout'
-import { useState } from 'react'
-import { getStoredJWTToken } from '../../../helpers/loginHelpers'
 import { Logout } from '../../pages/Logout/Logout'
 import { CreateAccount } from '../../pages/CreateAccount/CreateAccount'
+import { AdminProtectedRoute } from './AdminProtectedRoute'
+import { Admin } from '../../pages/Admin/Admin'
+import { ProfileProvider } from '../../../providers/ProfileContextProvider'
+import { UnauthenticatedRoute } from './UnauthenticatedRoute'
 
 export const Router = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!getStoredJWTToken())
-
   return (
-    <BrowserRouter>
-      <BaseLayout isAuthenticated={isAuthenticated}>
-        <Routes>
-          <Route
-            path="/create-account"
-            element={<CreateAccount isAuthenticated={isAuthenticated} />}
-          />
+    <ProfileProvider>
+      <BrowserRouter>
+        <BaseLayout>
+          <Routes>
+            {/* Log-out */}
+            <Route path="/logout" element={<Logout />} />
 
-          <Route
-            path="/login"
-            element={
-              <Login
-                isAuthenticated={isAuthenticated}
-                setIsAuthenticated={setIsAuthenticated}
-              />
-            }
-          />
+            {/* Unauthenticated Routes */}
+            <Route element={<UnauthenticatedRoute />}>
+              {/* Create Account */}
+              <Route path="/create-account" element={<CreateAccount />} />
 
-          <Route
-            path="/logout"
-            element={<Logout setIsAuthenticated={setIsAuthenticated} />}
-          />
+              {/* Log-in */}
+              <Route path="/login" element={<Login />} />
+            </Route>
 
-          <Route element={<ProtectedRoute />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BaseLayout>
-    </BrowserRouter>
+            {/* Authentication Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              {/* Home */}
+              <Route index element={<Home />} />
+
+              {/* Admin Routes */}
+              <Route element={<AdminProtectedRoute />}>
+                <Route path="/admin" element={<Admin />} />
+              </Route>
+            </Route>
+          </Routes>
+        </BaseLayout>
+      </BrowserRouter>
+    </ProfileProvider>
   )
 }

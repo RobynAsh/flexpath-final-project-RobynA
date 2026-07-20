@@ -6,7 +6,7 @@ import { Button } from '../../atoms/Button/Button'
 import { DashBorder } from '../../atoms/DashBorder/DashBorder'
 import { faFrog, faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 
 type CreateAccountForm = {
@@ -15,11 +15,7 @@ type CreateAccountForm = {
   confirmPassword: string
 }
 
-export const CreateAccount = ({
-  isAuthenticated,
-}: {
-  isAuthenticated: boolean
-}) => {
+export const CreateAccount = () => {
   const navigate = useNavigate()
 
   const [createAccountError, setCreateAccountError] = useState('')
@@ -73,10 +69,6 @@ export const CreateAccount = ({
           : 'An unexpected error occurred.',
       )
     }
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />
   }
 
   return (

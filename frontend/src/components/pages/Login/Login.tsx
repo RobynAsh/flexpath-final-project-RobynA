@@ -5,8 +5,8 @@ import { Username } from '../../form/Username/Username'
 import { Password } from '../../form/Password/Password'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { DashBorder } from '../../atoms/DashBorder/DashBorder'
-import { Dispatch, SetStateAction, useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { clearStoredJWTToken } from '../../../helpers/loginHelpers'
 import { PreLoginLayout } from '../../layouts/PreLoginLayout/PreLoginLayout'
 import { useForm } from 'react-hook-form'
@@ -26,13 +26,7 @@ type LoginForm = {
   password: string
 }
 
-export const Login = ({
-  isAuthenticated,
-  setIsAuthenticated,
-}: {
-  isAuthenticated: boolean
-  setIsAuthenticated: Dispatch<SetStateAction<boolean>>
-}) => {
+export const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -82,7 +76,6 @@ export const Login = ({
 
       clearStoredJWTToken()
       tokenStorage.setItem('token', accessToken.token)
-      setIsAuthenticated(true)
 
       navigate('/', { replace: true })
     } catch (error) {
@@ -92,10 +85,6 @@ export const Login = ({
           : 'An unexpected error occurred.',
       )
     }
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />
   }
 
   return (

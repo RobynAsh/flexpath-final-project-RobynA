@@ -1,15 +1,15 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useProfile } from '../../../providers/ProfileContext'
 
-export const ProtectedRoute = () => {
+export const UnauthenticatedRoute = () => {
   const { profileStatus } = useProfile()
 
   if (profileStatus === 'checking') {
     return <p>Checking your session...</p>
   }
 
-  if (profileStatus === 'unauthenticated') {
-    return <Navigate to="/login" replace />
+  if (profileStatus === 'authenticated') {
+    return <Navigate to="/" replace />
   }
 
   return <Outlet />

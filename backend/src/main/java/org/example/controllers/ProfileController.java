@@ -1,6 +1,7 @@
 package org.example.controllers;
 
 import org.example.daos.UserDao;
+import org.example.dtos.ProfileDto;
 import org.example.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,12 +27,16 @@ public class ProfileController {
      * Gets the profile of the currently logged in user.
      *
      * @param principal The currently logged in user.
-     * @return The profile of the currently logged in user.
+     * @return The profile and admin status of the currently logged in user.
      */
     @GetMapping
-    public User getProfile(Principal principal) {
+    public ProfileDto getProfile(Principal principal) {
         String username = principal.getName();
-        return userDao.getUserByUsername(username);
+        
+        List<String> roles = userDao.getRoles(username);
+        boolean isAdmin = roles.contains("ADMIN");
+
+        return new ProfileDto(username, isAdmin);
     }
 
     /**
