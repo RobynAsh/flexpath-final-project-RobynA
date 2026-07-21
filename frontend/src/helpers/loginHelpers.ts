@@ -1,5 +1,5 @@
 export const getStoredJWTToken = () =>
-  sessionStorage.getItem('token') ?? localStorage.getItem('token')
+  (sessionStorage.getItem('token') ?? localStorage.getItem('token')) || ''
 
 export const clearStoredJWTToken = () => {
   sessionStorage.removeItem('token')

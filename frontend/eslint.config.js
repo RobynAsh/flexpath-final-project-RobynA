@@ -7,8 +7,8 @@ import eslintConfigPrettier from 'eslint-config-prettier'
 import tseslint from 'typescript-eslint'
 
 export default [
-  { ignores: ['dist'] },
   ...tseslint.configs.recommended,
+  { ignores: ['dist'] },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {

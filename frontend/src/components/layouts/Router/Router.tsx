@@ -9,38 +9,49 @@ import { AdminProtectedRoute } from './AdminProtectedRoute'
 import { Admin } from '../../pages/Admin/Admin'
 import { ProfileProvider } from '../../../providers/ProfileContextProvider'
 import { UnauthenticatedRoute } from './UnauthenticatedRoute'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+    },
+  },
+})
 
 export const Router = () => {
   return (
-    <ProfileProvider>
-      <BrowserRouter>
-        <BaseLayout>
-          <Routes>
-            {/* Log-out */}
-            <Route path="/logout" element={<Logout />} />
+    <QueryClientProvider client={queryClient}>
+      <ProfileProvider>
+        <BrowserRouter>
+          <BaseLayout>
+            <Routes>
+              {/* Unauthenticated Routes */}
+              <Route element={<UnauthenticatedRoute />}>
+                {/* Create Account */}
+                <Route path="/create-account" element={<CreateAccount />} />
 
-            {/* Unauthenticated Routes */}
-            <Route element={<UnauthenticatedRoute />}>
-              {/* Create Account */}
-              <Route path="/create-account" element={<CreateAccount />} />
-
-              {/* Log-in */}
-              <Route path="/login" element={<Login />} />
-            </Route>
-
-            {/* Authentication Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              {/* Home */}
-              <Route index element={<Home />} />
-
-              {/* Admin Routes */}
-              <Route element={<AdminProtectedRoute />}>
-                <Route path="/admin" element={<Admin />} />
+                {/* Log-in */}
+                <Route path="/login" element={<Login />} />
               </Route>
-            </Route>
-          </Routes>
-        </BaseLayout>
-      </BrowserRouter>
-    </ProfileProvider>
+
+              {/* Authentication Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                {/* Log-out */}
+                <Route path="/logout" element={<Logout />} />
+
+                {/* Home */}
+                <Route index element={<Home />} />
+
+                {/* Admin Routes */}
+                <Route element={<AdminProtectedRoute />}>
+                  <Route path="/admin" element={<Admin />} />
+                </Route>
+              </Route>
+            </Routes>
+          </BaseLayout>
+        </BrowserRouter>
+      </ProfileProvider>
+    </QueryClientProvider>
   )
 }

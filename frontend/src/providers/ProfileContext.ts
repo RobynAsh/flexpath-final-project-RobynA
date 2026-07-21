@@ -8,8 +8,15 @@ export type Profile = {
 }
 
 export type ProfileContextValue = {
+<<<<<<< HEAD
+  profile?: Profile
+  profileStatus: ProfileStatus
+  jwtToken: string
+  setJwtToken: (_token: string, _rememberMe?: boolean) => void
+=======
   profile: Profile | null
   profileStatus: ProfileStatus
+>>>>>>> origin/main
 }
 
 export const ProfileContext = createContext<ProfileContextValue | undefined>(

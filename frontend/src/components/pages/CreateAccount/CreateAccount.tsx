@@ -8,15 +8,18 @@ import { faFrog, faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import {
+  useCreateAccount,
+  type CreateAccountCredentials,
+} from '../../../services/useCreateAccount'
 
-type CreateAccountForm = {
-  username: string
-  password: string
+type CreateAccountForm = CreateAccountCredentials & {
   confirmPassword: string
 }
 
 export const CreateAccount = () => {
   const navigate = useNavigate()
+  const { mutateAsync: createAccount } = useCreateAccount()
 
   const [createAccountError, setCreateAccountError] = useState('')
   const {
@@ -46,20 +49,7 @@ export const CreateAccount = () => {
     setCreateAccountError('')
 
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('There was an error creating your account.')
-      }
+      await createAccount({ username, password })
 
       navigate('/login', { replace: true, state: { createdAccount: true } })
     } catch (error) {

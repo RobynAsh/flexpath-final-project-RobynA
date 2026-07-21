@@ -7,28 +7,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { DashBorder } from '../../atoms/DashBorder/DashBorder'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { clearStoredJWTToken } from '../../../helpers/loginHelpers'
 import { PreLoginLayout } from '../../layouts/PreLoginLayout/PreLoginLayout'
 import { useForm } from 'react-hook-form'
-
-export type LoginResponse = {
-  accessToken: {
-    token: string
-  }
-}
+import { useLogin, type LoginCredentials } from '../../../services/useLogin'
+import { useProfile } from '../../../providers/ProfileContext'
 
 type LoginLocationState = {
   createdAccount?: boolean
 } | null
 
-type LoginForm = {
-  username: string
-  password: string
-}
-
 export const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { setJwtToken } = useProfile()
+  const { mutateAsync: login } = useLogin()
 
   const [rememberMe, setRememberMe] = useState(false)
   const [loginError, setLoginError] = useState('')
@@ -36,7 +28,7 @@ export const Login = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>()
+  } = useForm<LoginCredentials>()
 
   const usernameField = register('username', {
     required: 'Username is required.',
@@ -48,35 +40,13 @@ export const Login = () => {
   const didUserCreateAccount = (location.state as LoginLocationState)
     ?.createdAccount
 
-  const onLogin = async ({ username, password }: LoginForm) => {
+  const onLogin = async (credentials: LoginCredentials) => {
     setLoginError('')
 
     try {
-      const response = await fetch('/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      })
+      const { accessToken } = await login(credentials)
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Incorrect username or password.')
-        }
-
-        throw new Error('Unable to log in right now.')
-      }
-
-      const { accessToken }: LoginResponse = await response.json()
-      const tokenStorage = rememberMe ? localStorage : sessionStorage
-
-      clearStoredJWTToken()
-      tokenStorage.setItem('token', accessToken.token)
-
+      setJwtToken(accessToken.token, rememberMe)
       navigate('/', { replace: true })
     } catch (error) {
       setLoginError(
