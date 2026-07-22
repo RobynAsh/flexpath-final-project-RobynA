@@ -26,6 +26,7 @@ export const CreateAccount = () => {
     register,
     handleSubmit,
     getValues,
+    setError,
     formState: { errors },
   } = useForm<CreateAccountForm>()
 
@@ -53,6 +54,18 @@ export const CreateAccount = () => {
 
       navigate('/login', { replace: true, state: { createdAccount: true } })
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'Username is already taken.'
+      ) {
+        setError(
+          'username',
+          { type: 'server', message: error.message },
+          { shouldFocus: true },
+        )
+        return
+      }
+
       setCreateAccountError(
         error instanceof Error
           ? error.message

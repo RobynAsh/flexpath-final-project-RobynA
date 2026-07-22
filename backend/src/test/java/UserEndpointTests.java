@@ -1,4 +1,5 @@
 import org.example.SpringBootApplication;
+import org.example.models.Error;
 import org.example.models.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -125,6 +126,22 @@ public class UserEndpointTests extends WebStoreTest {
         assertEquals(HttpStatus.CREATED, responseCode);
         assertEquals("user", createdUser.getUsername());
         assertEquals("user", createdUser.getPassword());
+    }
+
+    /**
+     * Tests that creating a user with an existing username fails with a conflict.
+     */
+    @Test
+    @DisplayName("POST /api/users should return a 409 if the username is already taken")
+    public void createUserShouldFailIfUsernameIsAlreadyTaken() {
+        var result = this.restTemplate.postForEntity(
+                getBaseUrl() + "/api/users",
+                new User("test-admin", "password"),
+                Error.class
+        );
+
+        assertEquals(HttpStatus.CONFLICT, result.getStatusCode());
+        assertEquals("Username is already taken", result.getBody().getMessage());
     }
 
     /**

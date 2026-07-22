@@ -15,6 +15,10 @@ const createAccount = async (credentials: CreateAccountCredentials) => {
   })
 
   if (!response.ok) {
+    if (response.status === 409) {
+      throw new Error('Username is already taken.')
+    }
+
     throw new Error('There was an error creating your account.')
   }
 }

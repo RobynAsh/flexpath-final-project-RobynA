@@ -1,9 +1,11 @@
 package org.example.controllers;
 
-import org.example.models.User;
 import org.example.daos.UserDao;
+import org.example.models.Error;
+import org.example.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,11 +54,13 @@ public class UserController {
      * @param user The user to create.
      * @return The created user.
      */
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     @PreAuthorize("permitAll()")
-    public User create(@RequestBody User user) {
-        return userDao.createUser(user);
+    public ResponseEntity<?> create(@RequestBody User user) {
+        if (userDao.getUserByUsername(user.getUsername()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new Error("Username is already taken"));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDao.createUser(user));
     }
 
     /**
