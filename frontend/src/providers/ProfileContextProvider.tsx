@@ -31,7 +31,6 @@ export const ProfileProvider = ({ children }: ProfileProviderProps) => {
   useEffect(() => {
     if (isError) {
       console.error('Error while fetching profile:', error)
-      setJwtToken('')
     }
   }, [error, isError, setJwtToken])
 
