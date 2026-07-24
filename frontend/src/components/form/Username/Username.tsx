@@ -6,11 +6,15 @@ interface UsernameProps extends Omit<
   ComponentPropsWithoutRef<'input'>,
   'id' | 'type'
 > {
+  placeholder?: string
   error?: string
 }
 
 export const Username = forwardRef<HTMLInputElement, UsernameProps>(
-  function Username({ error, ...inputProps }, ref) {
+  function Username(
+    { error, placeholder = 'Enter your username', ...inputProps },
+    ref,
+  ) {
     return (
       <TextField
         {...inputProps}
@@ -18,7 +22,7 @@ export const Username = forwardRef<HTMLInputElement, UsernameProps>(
         id="username"
         label="Username"
         error={error}
-        placeholder="Enter your username"
+        placeholder={placeholder}
         leftIcon={faUser}
       />
     )

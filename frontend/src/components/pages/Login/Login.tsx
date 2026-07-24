@@ -92,12 +92,8 @@ export const Login = () => {
             {loginError}
           </p>
         )}
-        <Button
-          type="submit"
-          variant="primary"
-          className="items-center justify-center gap-2"
-        >
-          <FontAwesomeIcon icon={faFrog} className="text-xl" />
+        <Button type="submit" variant="primary">
+          <FontAwesomeIcon icon={faFrog} />
           <span>Log In</span>
         </Button>
         <DashBorder>
@@ -105,12 +101,11 @@ export const Login = () => {
         </DashBorder>
         <Button
           variant="secondary"
-          className="items-center justify-center gap-2"
           onClick={() => {
             navigate('/create-account')
           }}
         >
-          <FontAwesomeIcon icon={faUserPlus} className="text-xl" />
+          <FontAwesomeIcon icon={faUserPlus} />
           <span>Create an Account</span>
         </Button>
       </form>

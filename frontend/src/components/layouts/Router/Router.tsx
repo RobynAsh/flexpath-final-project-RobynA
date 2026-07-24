@@ -10,6 +10,8 @@ import { Admin } from '../../pages/Admin/Admin'
 import { ProfileProvider } from '../../../providers/ProfileContextProvider'
 import { UnauthenticatedRoute } from './UnauthenticatedRoute'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AdminManagePatterns } from '../../pages/Admin/AdminManagePatterns/AdminManagePatterns'
+import { AdminAddPattern } from '../../pages/Admin/AdminManagePatterns/AdminAddPattern'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,15 +39,19 @@ export const Router = () => {
 
               {/* Authentication Protected Routes */}
               <Route element={<ProtectedRoute />}>
-                {/* Log-out */}
-                <Route path="/logout" element={<Logout />} />
-
                 {/* Home */}
                 <Route index element={<Home />} />
 
+                {/* Log-out */}
+                <Route path="/logout" element={<Logout />} />
+
                 {/* Admin Routes */}
-                <Route element={<AdminProtectedRoute />}>
-                  <Route path="/admin" element={<Admin />} />
+                <Route path="/admin" element={<AdminProtectedRoute />}>
+                  <Route index element={<Admin />} />
+
+                  {/* Admin - Patterns */}
+                  <Route path="patterns" element={<AdminManagePatterns />} />
+                  <Route path="patterns/add" element={<AdminAddPattern />} />
                 </Route>
               </Route>
             </Routes>

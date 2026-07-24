@@ -3,11 +3,9 @@ import { Container } from '../../atoms/Container/Container'
 import { HeaderNavLink } from './HeaderNavLink'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useNavigate } from 'react-router-dom'
 import { useProfile } from '../../../providers/ProfileContext'
 
 export const Header = () => {
-  const navigate = useNavigate()
   const { profile, profileStatus } = useProfile()
 
   const [isMounted, setIsMounted] = useState(false)
@@ -69,21 +67,9 @@ export const Header = () => {
               className={`flex flex-col gap-4 md:flex-row ${isMobileMenuOpen ? 'max-h-48 pt-2 md:pt-0' : 'max-h-0 pt-0'} ${isMobileTransitionSet ? 'transition-all' : ''} overflow-hidden md:max-h-full md:overflow-visible`}
             >
               {profile?.isAdmin && (
-                <HeaderNavLink
-                  onClick={() => {
-                    navigate('/admin')
-                  }}
-                >
-                  Admin
-                </HeaderNavLink>
+                <HeaderNavLink to="/admin">Admin</HeaderNavLink>
               )}
-              <HeaderNavLink
-                onClick={() => {
-                  navigate('/logout')
-                }}
-              >
-                Logout
-              </HeaderNavLink>
+              <HeaderNavLink to="/logout">Logout</HeaderNavLink>
             </div>
           )}
         </Container>

@@ -110,7 +110,7 @@ export const CreateAccount = () => {
           variant="primary"
           className="items-center justify-center gap-2"
         >
-          <FontAwesomeIcon icon={faUserPlus} className="text-xl" />
+          <FontAwesomeIcon icon={faUserPlus} />
           <span>Create Account</span>
         </Button>
         <DashBorder>
@@ -123,7 +123,7 @@ export const CreateAccount = () => {
             navigate('/login')
           }}
         >
-          <FontAwesomeIcon icon={faFrog} className="text-xl" />
+          <FontAwesomeIcon icon={faFrog} />
           <span>Log-in</span>
         </Button>
       </form>

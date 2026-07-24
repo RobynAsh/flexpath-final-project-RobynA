@@ -6,6 +6,8 @@ export const Container = ({
   className?: string
 }) => {
   return (
-    <div className={`container mx-auto flex p-2 ${className}`}>{children}</div>
+    <div className={`container mx-auto flex flex-col gap-3 p-2 ${className}`}>
+      {children}
+    </div>
   )
 }
