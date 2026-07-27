@@ -2,13 +2,14 @@ import { faFloppyDisk } from '@fortawesome/free-regular-svg-icons'
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   useAddPattern,
   type AddPatternRequest,
 } from '../../../../services/useAddPattern'
 import { Button } from '../../../atoms/Button/Button'
+import { MultiSelect } from '../../../form/MultiSelect/MultiSelect'
 import { TextArea } from '../../../form/TextArea/TextArea'
 import { TextField } from '../../../form/TextField/TextField'
 import { Username } from '../../../form/Username/Username'
@@ -19,10 +20,15 @@ export const AdminAddPattern = () => {
   const [addPatternError, setAddPatternError] = useState('')
 
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<AddPatternRequest>()
+  } = useForm<AddPatternRequest>({
+    defaultValues: {
+      tags: [],
+    },
+  })
 
   const usernameField = register('username', {
     required: 'Username is required.',
@@ -46,7 +52,7 @@ export const AdminAddPattern = () => {
     required: 'Description is required.',
   })
   const linkField = register('link', {
-    required: 'Pattern link is required.',
+    required: 'Pattern URL is required.',
   })
   const imageUrlField = register('imageUrl')
 
@@ -124,6 +130,20 @@ export const AdminAddPattern = () => {
           />
         </div>
 
+        <Controller
+          control={control}
+          name="tags"
+          render={({ field }) => (
+            <MultiSelect
+              id="tags"
+              label="Tags"
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="Type a tag and press Enter"
+            />
+          )}
+        />
+
         <TextArea
           {...descriptionField}
           id="description"
@@ -133,21 +153,23 @@ export const AdminAddPattern = () => {
           error={errors.description?.message}
         />
 
-        <TextField
-          {...linkField}
-          id="link"
-          type="url"
-          label="Pattern Link"
-          placeholder="https://example.com/pattern"
-          error={errors.link?.message}
-        />
-        <TextField
-          {...imageUrlField}
-          id="imageUrl"
-          type="url"
-          label="Image URL"
-          placeholder="https://example.com/pattern-image.jpg"
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <TextField
+            {...linkField}
+            id="link"
+            type="url"
+            label="Pattern URL"
+            placeholder="https://example.com/pattern"
+            error={errors.link?.message}
+          />
+          <TextField
+            {...imageUrlField}
+            id="imageUrl"
+            type="url"
+            label="Image URL"
+            placeholder="https://example.com/pattern-image.jpg"
+          />
+        </div>
 
         {addPatternError && (
           <p role="alert" className="text-center text-rose-600">

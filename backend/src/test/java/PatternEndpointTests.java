@@ -1,4 +1,5 @@
 import org.example.SpringBootApplication;
+import org.example.dtos.CreatePatternDto;
 import org.example.models.Pattern;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,75 @@ public class PatternEndpointTests extends WebStoreTest {
         assertEquals("Beginner", createdPattern.getDifficulty());
         assertEquals("https://example.com/pattern", createdPattern.getLink());
         assertEquals("https://example.com/pattern.jpg", createdPattern.getImageUrl());
+    }
+
+    /**
+     * Tests that creating a pattern reuses existing tags owned by the pattern's
+     * user and creates any tags that do not yet exist.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("POST /api/patterns should reuse and create tags for the pattern owner")
+    public void createPatternShouldAssignExistingAndNewTagsToPatternOwner() throws Exception {
+        var request = new CreatePatternDto(
+                "pattern-owner",
+                "Sweater",
+                "Crochet",
+                "Tagged Pattern",
+                "Test Designer",
+                "A tagged pattern created by an endpoint test.",
+                "Beginner",
+                "https://example.com/tagged-pattern",
+                "https://example.com/tagged-pattern.jpg",
+                new String[] {"cozy", "winter"});
+        var requestEntity = GetAuthEntity("test-admin", "admin", request);
+
+        executeSql("INSERT INTO flexpath_final.users (username, password) "
+                + "VALUES ('pattern-owner', 'password');");
+        executeSql("INSERT INTO flexpath_final.tags (username, name) "
+                + "VALUES ('pattern-owner', 'cozy');");
+
+        var result = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns",
+                HttpMethod.POST,
+                requestEntity,
+                Pattern.class);
+        var createdPattern = result.getBody();
+
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
+        assertNotNull(createdPattern);
+        assertEquals("pattern-owner", createdPattern.getUsername());
+
+        var jdbcTemplate = getJdbcTemplate();
+        assertEquals(
+                2,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.tags WHERE username = ?;",
+                        Integer.class,
+                        "pattern-owner"));
+        assertEquals(
+                0,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.tags WHERE username = ?;",
+                        Integer.class,
+                        "test-admin"));
+        assertEquals(
+                2,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_tags WHERE pattern_id = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_tags pt "
+                                + "JOIN flexpath_final.tags t ON t.tag_id = pt.tag_id "
+                                + "WHERE pt.pattern_id = ? AND t.username = ? AND t.name = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId(),
+                        "pattern-owner",
+                        "cozy"));
     }
 
     /**

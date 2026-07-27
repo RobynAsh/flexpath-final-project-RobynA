@@ -11,6 +11,7 @@ export type AddPatternRequest = {
   description: string
   link: string
   imageUrl: string
+  tags: string[]
 }
 
 const addPattern = async (

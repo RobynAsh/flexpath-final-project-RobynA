@@ -48,16 +48,22 @@ public class TagDao extends JdbcDao {
         return jdbcTemplate.query("SELECT * FROM tags WHERE username = ? ORDER BY name;", this::mapToTag, username);
     }
 
+
     /**
-     * Gets a tag by id.
+     * Gets a tag by its owning username and name.
      *
-     * @param tagId The tag id.
+     * @param username The username that owns the tag.
+     * @param name The tag name.
      *
-     * @return Tag
+     * @return The tag, or null if it does not exist.
      */
-    public Tag getTagById(int tagId) {
+    public Tag getTagByUsernameAndName(String username, String name) {
         try {
-            return jdbcTemplate.queryForObject("SELECT * FROM tags WHERE tag_id = ?;", this::mapToTag, tagId);
+            return jdbcTemplate.queryForObject(
+                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
+                    this::mapToTag,
+                    username,
+                    name);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -81,26 +87,6 @@ public class TagDao extends JdbcDao {
         }, keyHolder);
         return getTagById(getGeneratedId(keyHolder));
     }
-
-    /**
-     * Updates a tag.
-     *
-     * @param tag The tag.
-     *
-     * @return Tag
-     */
-    public Tag updateTag(Tag tag) {
-        int rowsAffected = jdbcTemplate.update(
-                "UPDATE tags SET username = ?, name = ? WHERE tag_id = ?;",
-                tag.getUsername(),
-                tag.getName(),
-                tag.getTagId());
-        if (rowsAffected == 0) {
-            throw new DaoException("Zero rows affected, expected at least one.");
-        }
-        return getTagById(tag.getTagId());
-    }
-
     /**
      * Deletes a tag.
      *

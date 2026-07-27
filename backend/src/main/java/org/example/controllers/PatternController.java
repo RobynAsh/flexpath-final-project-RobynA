@@ -1,12 +1,21 @@
 package org.example.controllers;
 
 import org.example.daos.PatternDao;
+import org.example.daos.PatternTagDao;
+import org.example.daos.TagDao;
+import org.example.dtos.CreatePatternDto;
 import org.example.models.Pattern;
+import org.example.models.PatternTag;
+import org.example.models.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 
 /**
  * Controller for patterns.
@@ -24,13 +33,40 @@ public class PatternController {
     private PatternDao patternDao;
 
     /**
+     * The tag data access object.
+     */
+    @Autowired
+    private TagDao tagDao;
+
+    /**
+     * The pattern tag data access object.
+     */
+    @Autowired
+    private PatternTagDao patternTagDao;
+
+    /**
      * Creates a new pattern.
      *
-     * @param pattern The pattern to create.
+     * @param request The pattern and tags to create.
      * @return The created pattern.
      */
     @PostMapping
-    public ResponseEntity<Pattern> create(@RequestBody Pattern pattern) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(patternDao.createPattern(pattern));
+    @Transactional
+    public ResponseEntity<Pattern> create(@RequestBody CreatePatternDto request) {
+        Pattern pattern = patternDao.createPattern(request.toPattern());
+
+        if (request.tags() != null) {
+            for (String tagName : new LinkedHashSet<>(Arrays.asList(request.tags()))) {
+                Tag tag = tagDao.getTagByUsernameAndName(pattern.getUsername(), tagName);
+
+                if (tag == null) {
+                    tag = tagDao.createTag(new Tag(0, pattern.getUsername(), tagName));
+                }
+
+                patternTagDao.createPatternTag(new PatternTag(pattern.getPatternId(), tag.getTagId()));
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(pattern);
     }
 }

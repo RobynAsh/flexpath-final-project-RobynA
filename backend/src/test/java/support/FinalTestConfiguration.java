@@ -29,10 +29,10 @@ public class FinalTestConfiguration {
 
         var db = DB.newEmbeddedDB(configBuilder.build());
         db.start();
-        db.createDB("test", "root", "");
+        db.createDB("flexpath_final", "root", "");
 
         return DataSourceBuilder.create()
-            .url("jdbc:mariadb://localhost:" + db.getConfiguration().getPort() + "/test")
+            .url("jdbc:mariadb://localhost:" + db.getConfiguration().getPort() + "/flexpath_final")
             .username("root")
             .build();
     }
