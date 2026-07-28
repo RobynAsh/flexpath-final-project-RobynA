@@ -1,6 +1,13 @@
 import { useMutation } from '@tanstack/react-query'
 import { useProfile } from '../providers/ProfileContext'
 
+export type PatternYarn = {
+  weight: number
+  yardage: number
+  grams: number
+  description: string
+}
+
 export type AddPatternRequest = {
   username: string
   name: string
@@ -12,6 +19,7 @@ export type AddPatternRequest = {
   link: string
   imageUrl: string
   tags: string[]
+  yarn: PatternYarn[]
 }
 
 const addPattern = async (

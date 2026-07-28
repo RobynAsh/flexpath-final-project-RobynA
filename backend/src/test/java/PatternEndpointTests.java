@@ -1,6 +1,7 @@
 import org.example.SpringBootApplication;
 import org.example.dtos.CreatePatternDto;
 import org.example.models.Pattern;
+import org.example.models.PatternYarn;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -81,7 +82,8 @@ public class PatternEndpointTests extends WebStoreTest {
                 "Beginner",
                 "https://example.com/tagged-pattern",
                 "https://example.com/tagged-pattern.jpg",
-                new String[] {"cozy", "winter"});
+                new String[] {"cozy", "winter"},
+                null);
         var requestEntity = GetAuthEntity("test-admin", "admin", request);
 
         executeSql("INSERT INTO flexpath_final.users (username, password) "
@@ -129,6 +131,62 @@ public class PatternEndpointTests extends WebStoreTest {
                         createdPattern.getPatternId(),
                         "pattern-owner",
                         "cozy"));
+    }
+
+    /**
+     * Tests that creating a pattern creates each submitted yarn requirement for
+     * the newly created pattern.
+     */
+    @Test
+    @DisplayName("POST /api/patterns should create yarn requirements for the pattern")
+    public void createPatternShouldCreateYarnRequirements() {
+        var yarn = new PatternYarn[] {
+                new PatternYarn(0, 999, null, "Body", 4, 251, 142),
+                new PatternYarn(0, 999, null, "Trim", 3, 75, 50)
+        };
+        var request = new CreatePatternDto(
+                "test-admin",
+                "Sweater",
+                "Crochet",
+                "Pattern With Yarn",
+                "Test Designer",
+                "A pattern with yarn requirements.",
+                "Beginner",
+                "https://example.com/pattern-with-yarn",
+                "https://example.com/pattern-with-yarn.jpg",
+                null,
+                yarn);
+        var requestEntity = GetAuthEntity("test-admin", "admin", request);
+
+        var result = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns",
+                HttpMethod.POST,
+                requestEntity,
+                Pattern.class);
+        var createdPattern = result.getBody();
+
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
+        assertNotNull(createdPattern);
+
+        var jdbcTemplate = getJdbcTemplate();
+        assertEquals(
+                2,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_yarns WHERE pattern_id = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_yarns "
+                                + "WHERE pattern_id = ? AND description = ? AND weight = ? "
+                                + "AND yardage = ? AND grams = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId(),
+                        "Body",
+                        4,
+                        251,
+                        142));
     }
 
     /**

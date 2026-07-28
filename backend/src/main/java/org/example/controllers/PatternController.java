@@ -2,10 +2,12 @@ package org.example.controllers;
 
 import org.example.daos.PatternDao;
 import org.example.daos.PatternTagDao;
+import org.example.daos.PatternYarnDao;
 import org.example.daos.TagDao;
 import org.example.dtos.CreatePatternDto;
 import org.example.models.Pattern;
 import org.example.models.PatternTag;
+import org.example.models.PatternYarn;
 import org.example.models.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,9 +47,15 @@ public class PatternController {
     private PatternTagDao patternTagDao;
 
     /**
+     * The pattern yarn data access object.
+     */
+    @Autowired
+    private PatternYarnDao patternYarnDao;
+
+    /**
      * Creates a new pattern.
      *
-     * @param request The pattern and tags to create.
+     * @param request The pattern, tags, and yarn requirements to create.
      * @return The created pattern.
      */
     @PostMapping
@@ -64,6 +72,19 @@ public class PatternController {
                 }
 
                 patternTagDao.createPatternTag(new PatternTag(pattern.getPatternId(), tag.getTagId()));
+            }
+        }
+
+        if (request.yarn() != null) {
+            for (PatternYarn yarn : request.yarn()) {
+                patternYarnDao.createPatternYarn(new PatternYarn(
+                        0,
+                        pattern.getPatternId(),
+                        yarn.getSuggestedYarnId(),
+                        yarn.getDescription(),
+                        yarn.getWeight(),
+                        yarn.getYardage(),
+                        yarn.getGrams()));
             }
         }
 
