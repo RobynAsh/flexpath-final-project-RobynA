@@ -107,3 +107,51 @@ describe('AdminAddPattern yarn requirements', () => {
     expect(screen.queryByText('Body')).not.toBeInTheDocument()
   })
 })
+
+describe('AdminAddPattern tool requirements', () => {
+  test('validates tools without validating the pattern fields', async () => {
+    renderAdminAddPattern()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Add Tool Requirement' }),
+    )
+
+    expect(
+      await screen.findByText('Tool type is required.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Pattern name is required.'),
+    ).not.toBeInTheDocument()
+  })
+
+  test('adds tools to the pattern request and displays and removes them', async () => {
+    renderAdminAddPattern()
+
+    fireEvent.change(screen.getByLabelText('Tool Type'), {
+      target: { value: 'Crochet hook' },
+    })
+    fireEvent.change(screen.getByLabelText('Size (mm)'), {
+      target: { value: '5.5' },
+    })
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Add Tool Requirement' }),
+    )
+
+    expect(await screen.findByText('Crochet hook')).toBeInTheDocument()
+    expect(screen.getByText('5.5 mm')).toBeInTheDocument()
+
+    completePatternFields()
+    fireEvent.click(screen.getByRole('button', { name: 'Save Pattern' }))
+
+    await waitFor(() =>
+      expect(mockAddPattern).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tools: [{ toolType: 'Crochet hook', sizeMm: 5.5 }],
+        }),
+      ),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
+    expect(screen.queryByText('Crochet hook')).not.toBeInTheDocument()
+  })
+})

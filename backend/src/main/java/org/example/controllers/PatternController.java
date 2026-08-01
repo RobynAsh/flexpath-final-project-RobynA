@@ -2,11 +2,13 @@ package org.example.controllers;
 
 import org.example.daos.PatternDao;
 import org.example.daos.PatternTagDao;
+import org.example.daos.PatternToolDao;
 import org.example.daos.PatternYarnDao;
 import org.example.daos.TagDao;
 import org.example.dtos.CreatePatternDto;
 import org.example.models.Pattern;
 import org.example.models.PatternTag;
+import org.example.models.PatternTool;
 import org.example.models.PatternYarn;
 import org.example.models.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +55,15 @@ public class PatternController {
     private PatternYarnDao patternYarnDao;
 
     /**
+     * The pattern tool data access object.
+     */
+    @Autowired
+    private PatternToolDao patternToolDao;
+
+    /**
      * Creates a new pattern.
      *
-     * @param request The pattern, tags, and yarn requirements to create.
+     * @param request The pattern, tags, yarn requirements, and tool requirements to create.
      * @return The created pattern.
      */
     @PostMapping
@@ -85,6 +93,16 @@ public class PatternController {
                         yarn.getWeight(),
                         yarn.getYardage(),
                         yarn.getGrams()));
+            }
+        }
+
+        if (request.tools() != null) {
+            for (PatternTool tool : request.tools()) {
+                patternToolDao.createPatternTool(new PatternTool(
+                        0,
+                        pattern.getPatternId(),
+                        tool.getToolType(),
+                        tool.getSizeMm()));
             }
         }
 

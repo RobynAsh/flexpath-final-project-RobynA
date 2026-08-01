@@ -8,6 +8,11 @@ export type PatternYarn = {
   description: string
 }
 
+export type PatternTool = {
+  toolType: string
+  sizeMm: number
+}
+
 export type AddPatternRequest = {
   username: string
   name: string
@@ -20,6 +25,7 @@ export type AddPatternRequest = {
   imageUrl: string
   tags: string[]
   yarn: PatternYarn[]
+  tools: PatternTool[]
 }
 
 const addPattern = async (

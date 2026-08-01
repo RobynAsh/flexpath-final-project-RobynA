@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   useAddPattern,
   type AddPatternRequest,
+  type PatternTool,
   type PatternYarn,
 } from '../../../../services/useAddPattern'
 import { Button } from '../../../atoms/Button/Button'
@@ -29,6 +30,7 @@ export const AdminAddPattern = () => {
     defaultValues: {
       tags: [],
       yarn: [],
+      tools: [],
     },
   })
 
@@ -40,12 +42,28 @@ export const AdminAddPattern = () => {
   } = useForm<PatternYarn>()
 
   const {
+    register: registerTool,
+    handleSubmit: handleToolSubmit,
+    reset: resetTool,
+    formState: { errors: toolErrors },
+  } = useForm<PatternTool>()
+
+  const {
     fields: yarnFields,
     append: appendYarn,
     remove: removeYarn,
   } = useFieldArray({
     control,
     name: 'yarn',
+  })
+
+  const {
+    fields: toolFields,
+    append: appendTool,
+    remove: removeTool,
+  } = useFieldArray({
+    control,
+    name: 'tools',
   })
 
   const usernameField = register('username', {
@@ -106,9 +124,26 @@ export const AdminAddPattern = () => {
     required: 'Yarn description is required.',
   })
 
+  const toolTypeField = registerTool('toolType', {
+    required: 'Tool type is required.',
+  })
+  const toolSizeField = registerTool('sizeMm', {
+    required: 'Size is required.',
+    valueAsNumber: true,
+    min: {
+      value: 0.01,
+      message: 'Size must be greater than 0.',
+    },
+  })
+
   const onAddYarn = (yarn: PatternYarn) => {
     appendYarn(yarn)
     resetYarn()
+  }
+
+  const onAddTool = (tool: PatternTool) => {
+    appendTool(tool)
+    resetTool()
   }
 
   const onSubmit = async (pattern: AddPatternRequest) => {
@@ -313,19 +348,68 @@ export const AdminAddPattern = () => {
 
       {/* Pattern Required Tool(s) */}
       <h2 className="border-thread-200 border-b-2 border-dashed pb-2">
-        Tool(s) Required
+        Tools Required
       </h2>
 
-      <div className="border-thread-200 flex flex-col rounded-lg border-2 p-2">
-        <Button variant="tertiary">
-          <FontAwesomeIcon icon={faAdd} />
-          Add Tool Requirement
-        </Button>
+      <div className="flex flex-col gap-2">
+        <form className="border-thread-200 flex flex-col gap-3 rounded-lg border-2 p-3">
+          <div className="grid gap-3 md:grid-cols-2">
+            <TextField
+              {...toolTypeField}
+              id="tool-type"
+              label="Tool Type"
+              placeholder="e.g. Crochet hook"
+              maxLength={255}
+              error={toolErrors.toolType?.message}
+            />
+            <TextField
+              {...toolSizeField}
+              id="tool-size-mm"
+              type="number"
+              label="Size (mm)"
+              placeholder="e.g. 5.5"
+              min={0.01}
+              step="any"
+              error={toolErrors.sizeMm?.message}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            variant="tertiary"
+            onClick={handleToolSubmit(onAddTool)}
+          >
+            <FontAwesomeIcon icon={faAdd} />
+            Add Tool Requirement
+          </Button>
+        </form>
+
+        {toolFields.map((tool, index) => (
+          <div
+            key={tool.id}
+            className="border-thread-200 flex flex-col gap-2 rounded-lg border-2 p-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <p className="text-lg sm:text-xl">{tool.toolType}</p>
+              <p className="text-thread-400">{tool.sizeMm} mm</p>
+            </div>
+            <div className="sm:w-32">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => removeTool(index)}
+              >
+                <FontAwesomeIcon icon={faXmark} />
+                Remove
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Pattern Required Material(s) */}
       <h2 className="border-thread-200 border-b-2 border-dashed pb-2">
-        Material(s) Required
+        Materials Required
       </h2>
 
       <div className="border-thread-200 flex flex-col rounded-lg border-2 p-2">

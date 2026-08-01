@@ -1,11 +1,12 @@
 package org.example.dtos;
 
 import org.example.models.Pattern;
+import org.example.models.PatternTool;
 import org.example.models.PatternYarn;
 
 /**
- * Request data for creating a pattern and assigning tags and yarn requirements
- * to it.
+ * Request data for creating a pattern and assigning tags, yarn requirements,
+ * and tool requirements to it.
  */
 public record CreatePatternDto(
         String username,
@@ -18,7 +19,8 @@ public record CreatePatternDto(
         String link,
         String imageUrl,
         String[] tags,
-        PatternYarn[] yarn) {
+        PatternYarn[] yarn,
+        PatternTool[] tools) {
 
     /**
      * Converts this request into the pattern model persisted by the pattern DAO.
