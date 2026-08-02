@@ -1,12 +1,14 @@
 package org.example.controllers;
 
 import org.example.daos.PatternDao;
+import org.example.daos.PatternMaterialDao;
 import org.example.daos.PatternTagDao;
 import org.example.daos.PatternToolDao;
 import org.example.daos.PatternYarnDao;
 import org.example.daos.TagDao;
 import org.example.dtos.CreatePatternDto;
 import org.example.models.Pattern;
+import org.example.models.PatternMaterial;
 import org.example.models.PatternTag;
 import org.example.models.PatternTool;
 import org.example.models.PatternYarn;
@@ -61,9 +63,15 @@ public class PatternController {
     private PatternToolDao patternToolDao;
 
     /**
+     * The pattern material data access object.
+     */
+    @Autowired
+    private PatternMaterialDao patternMaterialDao;
+
+    /**
      * Creates a new pattern.
      *
-     * @param request The pattern, tags, yarn requirements, and tool requirements to create.
+     * @param request The pattern, tags, yarn, tool, and material requirements to create.
      * @return The created pattern.
      */
     @PostMapping
@@ -103,6 +111,19 @@ public class PatternController {
                         pattern.getPatternId(),
                         tool.getToolType(),
                         tool.getSizeMm()));
+            }
+        }
+
+        if (request.materials() != null) {
+            for (PatternMaterial material : request.materials()) {
+                patternMaterialDao.createPatternMaterial(new PatternMaterial(
+                        0,
+                        pattern.getPatternId(),
+                        material.getName(),
+                        material.getDescription(),
+                        material.getQuantity(),
+                        null,
+                        null));
             }
         }
 

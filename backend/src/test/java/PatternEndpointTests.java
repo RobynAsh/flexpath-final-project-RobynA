@@ -1,6 +1,7 @@
 import org.example.SpringBootApplication;
 import org.example.dtos.CreatePatternDto;
 import org.example.models.Pattern;
+import org.example.models.PatternMaterial;
 import org.example.models.PatternTool;
 import org.example.models.PatternYarn;
 import org.junit.jupiter.api.DisplayName;
@@ -85,6 +86,7 @@ public class PatternEndpointTests extends WebStoreTest {
                 "https://example.com/tagged-pattern.jpg",
                 new String[] {"cozy", "winter"},
                 null,
+                null,
                 null);
         var requestEntity = GetAuthEntity("test-admin", "admin", request);
 
@@ -158,6 +160,7 @@ public class PatternEndpointTests extends WebStoreTest {
                 "https://example.com/pattern-with-yarn.jpg",
                 null,
                 yarn,
+                null,
                 null);
         var requestEntity = GetAuthEntity("test-admin", "admin", request);
 
@@ -215,7 +218,8 @@ public class PatternEndpointTests extends WebStoreTest {
                 "https://example.com/pattern-with-tools.jpg",
                 null,
                 null,
-                tools);
+                tools,
+                null);
         var requestEntity = GetAuthEntity("test-admin", "admin", request);
 
         var result = this.restTemplate.exchange(
@@ -244,6 +248,62 @@ public class PatternEndpointTests extends WebStoreTest {
                         createdPattern.getPatternId(),
                         "Crochet hook",
                         5.5f));
+    }
+
+    /**
+     * Tests that creating a pattern creates each submitted material requirement
+     * for the newly created pattern.
+     */
+    @Test
+    @DisplayName("POST /api/patterns should create material requirements for the pattern")
+    public void createPatternShouldCreateMaterialRequirements() {
+        var materials = new PatternMaterial[] {
+                new PatternMaterial(0, 999, "Buttons", "Wooden buttons", 6, null, null),
+                new PatternMaterial(0, 999, "Zipper", "Separating zipper", 1, null, null)
+        };
+        var request = new CreatePatternDto(
+                "test-admin",
+                "Sweater",
+                "Crochet",
+                "Pattern With Materials",
+                "Test Designer",
+                "A pattern with material requirements.",
+                "Beginner",
+                "https://example.com/pattern-with-materials",
+                "https://example.com/pattern-with-materials.jpg",
+                null,
+                null,
+                null,
+                materials);
+        var requestEntity = GetAuthEntity("test-admin", "admin", request);
+
+        var result = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns",
+                HttpMethod.POST,
+                requestEntity,
+                Pattern.class);
+        var createdPattern = result.getBody();
+
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
+        assertNotNull(createdPattern);
+
+        var jdbcTemplate = getJdbcTemplate();
+        assertEquals(
+                2,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_materials WHERE pattern_id = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_materials "
+                                + "WHERE pattern_id = ? AND name = ? AND description = ? AND quantity = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId(),
+                        "Buttons",
+                        "Wooden buttons",
+                        6));
     }
 
     /**

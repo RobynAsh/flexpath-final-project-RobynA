@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   useAddPattern,
   type AddPatternRequest,
+  type PatternMaterial,
   type PatternTool,
   type PatternYarn,
 } from '../../../../services/useAddPattern'
@@ -25,12 +26,15 @@ export const AdminAddPattern = () => {
     control,
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<AddPatternRequest>({
     defaultValues: {
       tags: [],
       yarn: [],
       tools: [],
+      materials: [],
     },
   })
 
@@ -49,6 +53,13 @@ export const AdminAddPattern = () => {
   } = useForm<PatternTool>()
 
   const {
+    register: registerMaterial,
+    handleSubmit: handleMaterialSubmit,
+    reset: resetMaterial,
+    formState: { errors: materialErrors },
+  } = useForm<PatternMaterial>()
+
+  const {
     fields: yarnFields,
     append: appendYarn,
     remove: removeYarn,
@@ -64,6 +75,15 @@ export const AdminAddPattern = () => {
   } = useFieldArray({
     control,
     name: 'tools',
+  })
+
+  const {
+    fields: materialFields,
+    append: appendMaterial,
+    remove: removeMaterial,
+  } = useFieldArray({
+    control,
+    name: 'materials',
   })
 
   const usernameField = register('username', {
@@ -136,18 +156,52 @@ export const AdminAddPattern = () => {
     },
   })
 
+  const materialNameField = registerMaterial('name', {
+    required: 'Material name is required.',
+  })
+  const materialDescriptionField = registerMaterial('description')
+  const materialQuantityField = registerMaterial('quantity', {
+    required: 'Quantity is required.',
+    valueAsNumber: true,
+    min: {
+      value: 1,
+      message: 'Quantity must be greater than 0.',
+    },
+  })
+
   const onAddYarn = (yarn: PatternYarn) => {
     appendYarn(yarn)
+    clearErrors('root.yarn')
     resetYarn()
   }
 
   const onAddTool = (tool: PatternTool) => {
     appendTool(tool)
+    clearErrors('root.tools')
     resetTool()
+  }
+
+  const onAddMaterial = (material: PatternMaterial) => {
+    appendMaterial(material)
+    resetMaterial()
   }
 
   const onSubmit = async (pattern: AddPatternRequest) => {
     setAddPatternError('')
+
+    if (pattern.yarn.length === 0 || pattern.tools.length === 0) {
+      if (pattern.yarn.length === 0) {
+        setError('root.yarn', {
+          message: 'At least one yarn is required.',
+        })
+      }
+      if (pattern.tools.length === 0) {
+        setError('root.tools', {
+          message: 'At least one tool is required.',
+        })
+      }
+      return
+    }
 
     try {
       await addPattern(pattern)
@@ -270,6 +324,12 @@ export const AdminAddPattern = () => {
       </h2>
 
       <div className="flex flex-col gap-2">
+        {errors.root?.yarn?.message && (
+          <p role="alert" className="text-center text-rose-600">
+            {errors.root.yarn.message}
+          </p>
+        )}
+
         <form className="border-thread-200 flex flex-col gap-3 rounded-lg border-2 p-3">
           <TextField
             {...yarnDescriptionField}
@@ -352,6 +412,12 @@ export const AdminAddPattern = () => {
       </h2>
 
       <div className="flex flex-col gap-2">
+        {errors.root?.tools?.message && (
+          <p role="alert" className="text-center text-rose-600">
+            {errors.root.tools.message}
+          </p>
+        )}
+
         <form className="border-thread-200 flex flex-col gap-3 rounded-lg border-2 p-3">
           <div className="grid gap-3 md:grid-cols-2">
             <TextField
@@ -412,11 +478,71 @@ export const AdminAddPattern = () => {
         Materials Required
       </h2>
 
-      <div className="border-thread-200 flex flex-col rounded-lg border-2 p-2">
-        <Button variant="tertiary">
-          <FontAwesomeIcon icon={faAdd} />
-          Add Material Requirement
-        </Button>
+      <div className="flex flex-col gap-2">
+        <form className="border-thread-200 flex flex-col gap-3 rounded-lg border-2 p-3">
+          <div className="grid gap-3 md:grid-cols-2">
+            <TextField
+              {...materialNameField}
+              id="material-name"
+              label="Material Name"
+              placeholder="e.g. Buttons"
+              maxLength={255}
+              error={materialErrors.name?.message}
+            />
+            <TextField
+              {...materialQuantityField}
+              id="material-quantity"
+              type="number"
+              label="Quantity"
+              placeholder="e.g. 6"
+              min={1}
+              error={materialErrors.quantity?.message}
+            />
+          </div>
+
+          <TextField
+            {...materialDescriptionField}
+            id="material-description"
+            label="Description"
+            placeholder="Describe this material requirement"
+            maxLength={1000}
+            error={materialErrors.description?.message}
+          />
+
+          <Button
+            type="submit"
+            variant="tertiary"
+            onClick={handleMaterialSubmit(onAddMaterial)}
+          >
+            <FontAwesomeIcon icon={faAdd} />
+            Add Material Requirement
+          </Button>
+        </form>
+
+        {materialFields.map((material, index) => (
+          <div
+            key={material.id}
+            className="border-thread-200 flex flex-col gap-2 rounded-lg border-2 p-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <p className="text-lg sm:text-xl">{material.name}</p>
+              <p className="text-thread-400">
+                Quantity: {material.quantity}
+                {material.description ? ` · ${material.description}` : ''}
+              </p>
+            </div>
+            <div className="sm:w-32">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => removeMaterial(index)}
+              >
+                <FontAwesomeIcon icon={faXmark} />
+                Remove
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {addPatternError && (

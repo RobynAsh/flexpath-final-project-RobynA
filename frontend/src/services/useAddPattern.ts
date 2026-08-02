@@ -13,6 +13,12 @@ export type PatternTool = {
   sizeMm: number
 }
 
+export type PatternMaterial = {
+  name: string
+  description: string
+  quantity: number
+}
+
 export type AddPatternRequest = {
   username: string
   name: string
@@ -26,6 +32,7 @@ export type AddPatternRequest = {
   tags: string[]
   yarn: PatternYarn[]
   tools: PatternTool[]
+  materials: PatternMaterial[]
 }
 
 const addPattern = async (

@@ -37,6 +37,16 @@ const addYarn = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Add Yarn Requirement' }))
 }
 
+const addTool = () => {
+  fireEvent.change(screen.getByLabelText('Tool Type'), {
+    target: { value: 'Crochet hook' },
+  })
+  fireEvent.change(screen.getByLabelText('Size (mm)'), {
+    target: { value: '5.5' },
+  })
+  fireEvent.click(screen.getByRole('button', { name: 'Add Tool Requirement' }))
+}
+
 const completePatternFields = () => {
   const valuesByLabel = {
     Username: 'froggy',
@@ -85,6 +95,8 @@ describe('AdminAddPattern yarn requirements', () => {
       screen.getByText('Weight 4 · 251 yards · 142 grams'),
     ).toBeInTheDocument()
 
+    addTool()
+    await screen.findByText('Crochet hook')
     completePatternFields()
     fireEvent.click(screen.getByRole('button', { name: 'Save Pattern' }))
 
@@ -103,7 +115,7 @@ describe('AdminAddPattern yarn requirements', () => {
       ),
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove' })[0])
     expect(screen.queryByText('Body')).not.toBeInTheDocument()
   })
 })
@@ -127,19 +139,13 @@ describe('AdminAddPattern tool requirements', () => {
   test('adds tools to the pattern request and displays and removes them', async () => {
     renderAdminAddPattern()
 
-    fireEvent.change(screen.getByLabelText('Tool Type'), {
-      target: { value: 'Crochet hook' },
-    })
-    fireEvent.change(screen.getByLabelText('Size (mm)'), {
-      target: { value: '5.5' },
-    })
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Add Tool Requirement' }),
-    )
+    addTool()
 
     expect(await screen.findByText('Crochet hook')).toBeInTheDocument()
     expect(screen.getByText('5.5 mm')).toBeInTheDocument()
 
+    addYarn()
+    await screen.findByText('Body')
     completePatternFields()
     fireEvent.click(screen.getByRole('button', { name: 'Save Pattern' }))
 
@@ -151,7 +157,100 @@ describe('AdminAddPattern tool requirements', () => {
       ),
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove' })[1])
     expect(screen.queryByText('Crochet hook')).not.toBeInTheDocument()
+  })
+})
+
+describe('AdminAddPattern material requirements', () => {
+  test('validates materials without validating the pattern fields', async () => {
+    renderAdminAddPattern()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Add Material Requirement' }),
+    )
+
+    expect(
+      await screen.findByText('Material name is required.'),
+    ).toBeInTheDocument()
+    expect(await screen.findByText('Quantity is required.')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Pattern name is required.'),
+    ).not.toBeInTheDocument()
+  })
+
+  test('adds materials to the pattern request and displays and removes them', async () => {
+    renderAdminAddPattern()
+
+    fireEvent.change(screen.getByLabelText('Material Name'), {
+      target: { value: 'Buttons' },
+    })
+    fireEvent.change(screen.getByLabelText('Quantity'), {
+      target: { value: '6' },
+    })
+    fireEvent.change(
+      screen.getByLabelText('Description', {
+        selector: '#material-description',
+      }),
+      { target: { value: 'Wooden buttons' } },
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Add Material Requirement' }),
+    )
+
+    expect(await screen.findByText('Buttons')).toBeInTheDocument()
+    expect(screen.getByText('Quantity: 6 · Wooden buttons')).toBeInTheDocument()
+
+    addYarn()
+    await screen.findByText('Body')
+    addTool()
+    await screen.findByText('Crochet hook')
+    completePatternFields()
+    fireEvent.click(screen.getByRole('button', { name: 'Save Pattern' }))
+
+    await waitFor(() =>
+      expect(mockAddPattern).toHaveBeenCalledWith(
+        expect.objectContaining({
+          materials: [
+            {
+              name: 'Buttons',
+              description: 'Wooden buttons',
+              quantity: 6,
+            },
+          ],
+        }),
+      ),
+    )
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove' })[2])
+    expect(screen.queryByText('Buttons')).not.toBeInTheDocument()
+  })
+})
+
+describe('AdminAddPattern submission requirements', () => {
+  test('requires at least one yarn and one tool while materials remain optional', async () => {
+    renderAdminAddPattern()
+    completePatternFields()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save Pattern' }))
+
+    expect(
+      await screen.findByText('At least one yarn requirement is required.'),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText('At least one tool requirement is required.'),
+    ).toBeInTheDocument()
+    expect(mockAddPattern).not.toHaveBeenCalled()
+
+    addYarn()
+    await screen.findByText('Body')
+    addTool()
+    await screen.findByText('Crochet hook')
+    fireEvent.click(screen.getByRole('button', { name: 'Save Pattern' }))
+
+    await waitFor(() => expect(mockAddPattern).toHaveBeenCalledTimes(1))
+    expect(mockAddPattern).toHaveBeenCalledWith(
+      expect.objectContaining({ materials: [] }),
+    )
   })
 })
