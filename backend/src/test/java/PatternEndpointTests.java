@@ -1,5 +1,6 @@
 import org.example.SpringBootApplication;
 import org.example.dtos.CreatePatternDto;
+import org.example.dtos.PatternDto;
 import org.example.models.Pattern;
 import org.example.models.PatternMaterial;
 import org.example.models.PatternTool;
@@ -22,6 +23,63 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SpringBootApplication.class)
 @Import(FinalTestConfiguration.class)
 public class PatternEndpointTests extends WebStoreTest {
+    /**
+     * Tests that listing patterns fails if not authorized.
+     */
+    @Test
+    @DisplayName("GET /api/patterns/all should return a 401 if not authorized")
+    public void listPatternsShouldFailIfNotAuthorized() {
+        var result = this.restTemplate.getForEntity(
+                getBaseUrl() + "/api/patterns/all",
+                String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+    }
+
+    /**
+     * Tests that listing patterns returns each pattern and its associated resources.
+     */
+    @Test
+    @DisplayName("GET /api/patterns/all should return patterns with their associated resources")
+    public void listPatternsShouldReturnAssociatedResources() throws Exception {
+        executeSql("INSERT INTO flexpath_final.patterns "
+                + "(username, category, technique, name) VALUES "
+                + "('test-admin', 'Sweater', 'Crochet', 'Listed Pattern');");
+        executeSql("INSERT INTO flexpath_final.tags (username, name) "
+                + "VALUES ('test-admin', 'cozy');");
+        executeSql("INSERT INTO flexpath_final.pattern_tags (pattern_id, tag_id) "
+                + "SELECT p.pattern_id, t.tag_id FROM flexpath_final.patterns p "
+                + "JOIN flexpath_final.tags t ON t.username = p.username "
+                + "WHERE p.name = 'Listed Pattern' AND t.name = 'cozy';");
+        executeSql("INSERT INTO flexpath_final.pattern_yarns "
+                + "(pattern_id, description, weight, yardage, grams) "
+                + "SELECT pattern_id, 'Body', 4, 251, 142 FROM flexpath_final.patterns "
+                + "WHERE name = 'Listed Pattern';");
+        executeSql("INSERT INTO flexpath_final.pattern_tools (pattern_id, tool_type, size_mm) "
+                + "SELECT pattern_id, 'Crochet hook', 5.5 FROM flexpath_final.patterns "
+                + "WHERE name = 'Listed Pattern';");
+        executeSql("INSERT INTO flexpath_final.pattern_materials "
+                + "(pattern_id, name, description, quantity) "
+                + "SELECT pattern_id, 'Buttons', 'Wooden buttons', 6 FROM flexpath_final.patterns "
+                + "WHERE name = 'Listed Pattern';");
+
+        var result = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/all",
+                HttpMethod.GET,
+                GetAuthEntity("test-admin", "admin"),
+                PatternDto[].class);
+        var patterns = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(patterns);
+        assertEquals(1, patterns.length);
+        assertEquals("Listed Pattern", patterns[0].pattern().getName());
+        assertEquals("cozy", patterns[0].tags().get(0).getName());
+        assertEquals("Body", patterns[0].yarn().get(0).getDescription());
+        assertEquals("Crochet hook", patterns[0].tools().get(0).getToolType());
+        assertEquals("Buttons", patterns[0].materials().get(0).getName());
+    }
+
     /**
      * Tests that creating a pattern fails if not authorized.
      */

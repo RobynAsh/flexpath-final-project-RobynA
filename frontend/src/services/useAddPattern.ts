@@ -1,5 +1,6 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useProfile } from '../providers/ProfileContext'
+import { allPatternsQueryKey } from './useGetAllPatterns'
 
 export type PatternYarn = {
   weight: number
@@ -55,8 +56,11 @@ const addPattern = async (
 
 export const useAddPattern = () => {
   const { jwtToken } = useProfile()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (pattern: AddPatternRequest) => addPattern(pattern, jwtToken),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: allPatternsQueryKey }),
   })
 }

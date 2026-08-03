@@ -7,6 +7,7 @@ import org.example.daos.PatternToolDao;
 import org.example.daos.PatternYarnDao;
 import org.example.daos.TagDao;
 import org.example.dtos.CreatePatternDto;
+import org.example.dtos.PatternDto;
 import org.example.models.Pattern;
 import org.example.models.PatternMaterial;
 import org.example.models.PatternTag;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 /**
  * Controller for patterns.
@@ -67,6 +69,26 @@ public class PatternController {
      */
     @Autowired
     private PatternMaterialDao patternMaterialDao;
+
+    /**
+     * Gets all patterns and their associated resources.
+     *
+     * @return The patterns with their tags, yarn, tools, and materials.
+     */
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public List<PatternDto> list() {
+        return patternDao.getPatterns().stream()
+                .map(pattern -> new PatternDto(
+                        pattern,
+                        patternTagDao.getPatternTagsByPatternId(pattern.getPatternId()).stream()
+                                .map(patternTag -> tagDao.getTagById(patternTag.getTagId()))
+                                .toList(),
+                        patternYarnDao.getPatternYarnsByPatternId(pattern.getPatternId()),
+                        patternToolDao.getPatternToolsByPatternId(pattern.getPatternId()),
+                        patternMaterialDao.getPatternMaterialsByPatternId(pattern.getPatternId())))
+                .toList();
+    }
 
     /**
      * Creates a new pattern.
