@@ -9,6 +9,7 @@ interface TextFieldProps extends ComponentPropsWithoutRef<'input'> {
   leftIcon?: IconDefinition
   rightIcon?: IconDefinition
   rightIconOnClick?: () => void
+  containerClassName?: string
 }
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
@@ -21,12 +22,13 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       leftIcon,
       rightIcon,
       rightIconOnClick,
+      containerClassName = '',
       ...inputProps
     },
     ref,
   ) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className={`flex flex-col gap-2 ${containerClassName}`}>
         <label
           htmlFor={id}
           className={`${error ? 'text-rose-500' : ''} text-lg sm:text-xl`}
