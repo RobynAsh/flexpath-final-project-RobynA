@@ -48,142 +48,16 @@ public class TagDao extends JdbcDao {
         return jdbcTemplate.query("SELECT * FROM tags WHERE username = ? ORDER BY name;", this::mapToTag, username);
     }
 
-
     /**
-     * Gets a tag by its owning username and name.
+     * Gets a tag by id.
      *
-     * @param username The username that owns the tag.
-     * @param name The tag name.
+     * @param tagId The tag id.
      *
-     * @return The tag, or null if it does not exist.
+     * @return Tag
      */
-    public Tag getTagByUsernameAndName(String username, String name) {
+    public Tag getTagById(int tagId) {
         try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
-                    this::mapToTag,
-                    username,
-                    name);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Gets a tag by its owning username and name.
-     *
-     * @param username The username that owns the tag.
-     * @param name The tag name.
-     *
-     * @return The tag, or null if it does not exist.
-     */
-    public Tag getTagByUsernameAndName(String username, String name) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
-                    this::mapToTag,
-                    username,
-                    name);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Gets a tag by its owning username and name.
-     *
-     * @param username The username that owns the tag.
-     * @param name The tag name.
-     *
-     * @return The tag, or null if it does not exist.
-     */
-    public Tag getTagByUsernameAndName(String username, String name) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
-                    this::mapToTag,
-                    username,
-                    name);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Gets a tag by its owning username and name.
-     *
-     * @param username The username that owns the tag.
-     * @param name The tag name.
-     *
-     * @return The tag, or null if it does not exist.
-     */
-    public Tag getTagByUsernameAndName(String username, String name) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
-                    this::mapToTag,
-                    username,
-                    name);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Gets a tag by its owning username and name.
-     *
-     * @param username The username that owns the tag.
-     * @param name The tag name.
-     *
-     * @return The tag, or null if it does not exist.
-     */
-    public Tag getTagByUsernameAndName(String username, String name) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
-                    this::mapToTag,
-                    username,
-                    name);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Gets a tag by its owning username and name.
-     *
-     * @param username The username that owns the tag.
-     * @param name The tag name.
-     *
-     * @return The tag, or null if it does not exist.
-     */
-    public Tag getTagByUsernameAndName(String username, String name) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
-                    this::mapToTag,
-                    username,
-                    name);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Gets a tag by its owning username and name.
-     *
-     * @param username The username that owns the tag.
-     * @param name The tag name.
-     *
-     * @return The tag, or null if it does not exist.
-     */
-    public Tag getTagByUsernameAndName(String username, String name) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
-                    this::mapToTag,
-                    username,
-                    name);
+            return jdbcTemplate.queryForObject("SELECT * FROM tags WHERE tag_id = ?;", this::mapToTag, tagId);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }

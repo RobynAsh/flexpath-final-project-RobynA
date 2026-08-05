@@ -1,12 +1,20 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { HeaderNavLink } from './HeaderNavLink'
 
 describe('HeaderNavLink', () => {
-  test('renders content and handles clicks', () => {
-    const onClick = jest.fn()
-    render(<HeaderNavLink onClick={onClick}>Profile</HeaderNavLink>)
+  test('renders content and links to its destination', () => {
+    render(
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <HeaderNavLink to="/profile">Profile</HeaderNavLink>
+      </MemoryRouter>,
+    )
 
-    fireEvent.click(screen.getByText('Profile'))
-    expect(onClick).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute(
+      'href',
+      '/profile',
+    )
   })
 })

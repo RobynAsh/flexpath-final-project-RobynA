@@ -14,7 +14,7 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
   const { pattern, tags, yarn, tools, materials } = details
 
   return (
-    <div className="bg-surface shadow-card border-border overflow-hidden rounded-xl border">
+    <article className="bg-surface shadow-card border-border overflow-hidden rounded-xl border">
       <div className="flex flex-col gap-2 bg-olive-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3>{pattern.name}</h3>
@@ -29,7 +29,10 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
               <strong>Updated:</strong> {formatDateTime(pattern.updatedAt)}
             </p>
           </div>
-          <Link to={`/admin/patterns/edit/${pattern.patternId}`}>
+          <Link
+            to={`/admin/patterns/edit/${pattern.patternId}`}
+            aria-label="Edit"
+          >
             <Button variant="tertiary">
               <FontAwesomeIcon icon={faPen} />
             </Button>
@@ -163,6 +166,6 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
           )}
         </div>
       </div>
-    </div>
+    </article>
   )
 }

@@ -235,10 +235,10 @@ describe('AdminAddPattern submission requirements', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save Pattern' }))
 
     expect(
-      await screen.findByText('At least one yarn requirement is required.'),
+      await screen.findByText('At least one yarn is required.'),
     ).toBeInTheDocument()
     expect(
-      await screen.findByText('At least one tool requirement is required.'),
+      await screen.findByText('At least one tool is required.'),
     ).toBeInTheDocument()
     expect(mockAddPattern).not.toHaveBeenCalled()
 
