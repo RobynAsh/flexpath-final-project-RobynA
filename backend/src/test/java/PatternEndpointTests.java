@@ -14,8 +14,11 @@ import org.springframework.http.HttpStatus;
 import support.FinalTestConfiguration;
 import support.WebStoreTest;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for the pattern endpoints.
@@ -362,6 +365,154 @@ public class PatternEndpointTests extends WebStoreTest {
                         "Buttons",
                         "Wooden buttons",
                         6));
+    }
+
+    /**
+     * Tests that updating a pattern replaces its details and associated resources.
+     */
+    @Test
+    @DisplayName("PUT /api/patterns/{patternId} should update the pattern and replace its resources")
+    public void updatePatternShouldReplacePatternAndResources() {
+        var original = new CreatePatternDto(
+                "test-admin",
+                "Sweater",
+                "Crochet",
+                "Original Pattern",
+                "Original Designer",
+                "Original description",
+                "Beginner",
+                "https://example.com/original",
+                null,
+                new String[] {"old-tag"},
+                new PatternYarn[] {
+                        new PatternYarn(0, 0, null, "Old yarn", 3, 100, 50)
+                },
+                new PatternTool[] {
+                        new PatternTool(0, 0, "Old hook", 4.0f)
+                },
+                new PatternMaterial[] {
+                        new PatternMaterial(0, 0, "Old material", null, 1, null, null)
+                });
+        var createResult = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns",
+                HttpMethod.POST,
+                GetAuthEntity("test-admin", "admin", original),
+                Pattern.class);
+        var createdPattern = createResult.getBody();
+        assertNotNull(createdPattern);
+
+        var update = new CreatePatternDto(
+                "test-admin",
+                "Accessory",
+                "Knitting",
+                "Updated Pattern",
+                "Updated Designer",
+                "Updated description",
+                "Intermediate",
+                "https://example.com/updated",
+                "https://example.com/updated.jpg",
+                new String[] {"new-tag"},
+                new PatternYarn[] {
+                        new PatternYarn(0, 0, null, "New yarn", 4, 250, 100)
+                },
+                new PatternTool[] {
+                        new PatternTool(0, 0, "New needles", 5.5f)
+                },
+                new PatternMaterial[] {
+                        new PatternMaterial(0, 0, "New material", "Updated", 2, null, null)
+                });
+        var updateResult = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + createdPattern.getPatternId(),
+                HttpMethod.PUT,
+                GetAuthEntity("test-admin", "admin", update),
+                Pattern.class);
+
+        assertEquals(HttpStatus.OK, updateResult.getStatusCode());
+        assertNotNull(updateResult.getBody());
+        assertEquals("Updated Pattern", updateResult.getBody().getName());
+
+        var jdbcTemplate = getJdbcTemplate();
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_yarns "
+                                + "WHERE pattern_id = ? AND description = 'New yarn';",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+        assertEquals(
+                0,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_yarns "
+                                + "WHERE pattern_id = ? AND description = 'Old yarn';",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_tags pt "
+                                + "JOIN flexpath_final.tags t ON t.tag_id = pt.tag_id "
+                                + "WHERE pt.pattern_id = ? AND t.name = 'new-tag';",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+    }
+
+    /**
+     * Tests that updating only associated resources still updates the pattern timestamp.
+     */
+    @Test
+    @DisplayName("PUT /api/patterns/{patternId} should update updatedAt for resource-only changes")
+    public void updatePatternShouldUpdateTimestampForResourceOnlyChanges() throws Exception {
+        var request = new CreatePatternDto(
+                "test-admin",
+                "Sweater",
+                "Crochet",
+                "Timestamp Pattern",
+                "Test Designer",
+                "Original description",
+                "Beginner",
+                "https://example.com/timestamp",
+                null,
+                new String[] {"old-tag"},
+                null,
+                null,
+                null);
+        var createResult = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns",
+                HttpMethod.POST,
+                GetAuthEntity("test-admin", "admin", request),
+                Pattern.class);
+        var createdPattern = createResult.getBody();
+        assertNotNull(createdPattern);
+
+        var previousUpdatedAt = LocalDateTime.of(2000, 1, 1, 0, 0);
+        getJdbcTemplate().update(
+                "UPDATE flexpath_final.patterns SET updated_at = ? WHERE pattern_id = ?;",
+                previousUpdatedAt,
+                createdPattern.getPatternId());
+
+        var resourceOnlyUpdate = new CreatePatternDto(
+                request.username(),
+                request.category(),
+                request.technique(),
+                request.name(),
+                request.designer(),
+                request.description(),
+                request.difficulty(),
+                request.link(),
+                request.imageUrl(),
+                new String[] {"new-tag"},
+                request.yarn(),
+                request.tools(),
+                request.materials());
+        var updateResult = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + createdPattern.getPatternId(),
+                HttpMethod.PUT,
+                GetAuthEntity("test-admin", "admin", resourceOnlyUpdate),
+                Pattern.class);
+
+        assertEquals(HttpStatus.OK, updateResult.getStatusCode());
+        assertNotNull(updateResult.getBody());
+        assertTrue(updateResult.getBody().getUpdatedAt().isAfter(previousUpdatedAt));
     }
 
     /**

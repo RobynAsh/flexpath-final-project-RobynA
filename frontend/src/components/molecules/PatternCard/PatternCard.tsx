@@ -1,5 +1,9 @@
 import { PatternDetails } from '../../../services/useGetAllPatterns'
 import { Chip } from '../../atoms/Chip/Chip'
+import { Link } from 'react-router-dom'
+import { Button } from '../../atoms/Button/Button'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPen } from '@fortawesome/free-solid-svg-icons'
 
 const displayValue = (value: string | number | null) =>
   value === null || value === '' ? 'Not provided' : value
@@ -10,24 +14,31 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
   const { pattern, tags, yarn, tools, materials } = details
 
   return (
-    <article className="bg-surface shadow-card border-border overflow-hidden rounded-xl border">
-      <div className="flex flex-col gap-2 bg-olive-50 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="bg-surface shadow-card border-border overflow-hidden rounded-xl border">
+      <div className="flex flex-col gap-2 bg-olive-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3>{pattern.name}</h3>
           <p className="text-muted">Owned by {pattern.username}</p>
         </div>
-        <div className="text-sm sm:text-right">
-          <p>
-            <strong>Created:</strong> {formatDateTime(pattern.createdAt)}
-          </p>
-          <p>
-            <strong>Updated:</strong> {formatDateTime(pattern.updatedAt)}
-          </p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="text-sm sm:text-right">
+            <p>
+              <strong>Created:</strong> {formatDateTime(pattern.createdAt)}
+            </p>
+            <p>
+              <strong>Updated:</strong> {formatDateTime(pattern.updatedAt)}
+            </p>
+          </div>
+          <Link to={`/admin/patterns/edit/${pattern.patternId}`}>
+            <Button variant="tertiary">
+              <FontAwesomeIcon icon={faPen} />
+            </Button>
+          </Link>
         </div>
       </div>
 
       <div className="grid gap-5 p-4 lg:grid-cols-2">
-        <section className="space-y-2">
+        <div className="space-y-2">
           <h5 className="text-olive-600">Pattern information</h5>
           <div className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1">
             <p className="font-bold">Designer</p>
@@ -71,9 +82,9 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
               )}
             </p>
           </div>
-        </section>
+        </div>
 
-        <section className="space-y-2">
+        <div className="space-y-2">
           <h5 className="text-olive-600">Tags</h5>
           {tags.length ? (
             <ul className="flex flex-wrap gap-2">
@@ -86,9 +97,9 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
           ) : (
             <p className="text-muted">No tags</p>
           )}
-        </section>
+        </div>
 
-        <section className="space-y-2">
+        <div className="space-y-2">
           <h5 className="text-olive-600">Yarn requirements</h5>
           {yarn.length ? (
             <ul className="space-y-2">
@@ -109,9 +120,9 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
           ) : (
             <p className="text-muted">No yarn requirements</p>
           )}
-        </section>
+        </div>
 
-        <section className="space-y-2">
+        <div className="space-y-2">
           <h5 className="text-olive-600">Tool requirements</h5>
           {tools.length ? (
             <ul className="space-y-2">
@@ -128,9 +139,9 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
           ) : (
             <p className="text-muted">No tool requirements</p>
           )}
-        </section>
+        </div>
 
-        <section className="space-y-2 lg:col-span-2">
+        <div className="space-y-2 lg:col-span-2">
           <h5 className="text-olive-600">Material requirements</h5>
           {materials.length ? (
             <ul className="grid gap-2 md:grid-cols-2">
@@ -150,8 +161,8 @@ export const PatternCard = ({ details }: { details: PatternDetails }) => {
           ) : (
             <p className="text-muted">No material requirements</p>
           )}
-        </section>
+        </div>
       </div>
-    </article>
+    </div>
   )
 }

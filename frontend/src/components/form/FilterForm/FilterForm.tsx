@@ -1,4 +1,3 @@
-import { useId } from 'react'
 import { TextField } from '../TextField/TextField'
 
 export type FilterFieldOption = {
@@ -23,8 +22,6 @@ export const FilterForm = ({
   onFilterTextChange,
   placeholder = 'Enter text to filter',
 }: FilterFormProps) => {
-  const id = useId()
-
   return (
     <form
       className="flex flex-col gap-4 md:flex-row"
@@ -33,11 +30,11 @@ export const FilterForm = ({
       }}
     >
       <div className="flex flex-col gap-2">
-        <label htmlFor={`${id}-filter-field`} className="text-lg sm:text-xl">
+        <label htmlFor="filter-field" className="text-lg sm:text-xl">
           Filter By
         </label>
         <select
-          id={`${id}-filter-field`}
+          id="filter-field"
           className="border-thread-200 rounded-lg border-2 bg-transparent px-3 py-2 text-lg outline-none focus:border-olive-400 sm:text-xl"
           value={filterField}
           onChange={(event) => onFilterFieldChange(event.target.value)}
@@ -50,7 +47,7 @@ export const FilterForm = ({
         </select>
       </div>
       <TextField
-        id={`${id}-filter-text`}
+        id="filter-text"
         label="Search Text"
         value={filterText}
         onChange={(event) => onFilterTextChange(event.target.value)}

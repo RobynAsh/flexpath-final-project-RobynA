@@ -1,5 +1,3 @@
-import { useId } from 'react'
-
 export type SortDirection = 'ascending' | 'descending'
 
 export type SortFieldOption = {
@@ -22,21 +20,19 @@ export const SortForm = ({
   onSortFieldChange,
   onSortDirectionChange,
 }: SortFormProps) => {
-  const id = useId()
-
   return (
     <form
-      className="bg-surface border-border shadow-card inline-flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-end sm:gap-8"
+      className="bg-surface border-border shadow-card flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-end sm:gap-8 md:inline-flex"
       onSubmit={(event) => {
         event.preventDefault()
       }}
     >
       <div className="flex min-w-48 flex-col gap-2">
-        <label htmlFor={`${id}-field`} className="text-lg sm:text-xl">
+        <label htmlFor="sort-field" className="text-lg sm:text-xl">
           Sort By
         </label>
         <select
-          id={`${id}-field`}
+          id="sort-field"
           className="border-thread-200 rounded-lg border-2 bg-transparent px-3 py-2 text-lg outline-none focus:border-olive-400 sm:text-xl"
           value={sortField}
           onChange={(event) => onSortFieldChange(event.target.value)}
@@ -59,7 +55,7 @@ export const SortForm = ({
             >
               <input
                 type="radio"
-                name={`${id}-direction`}
+                name="sort-direction"
                 value={direction}
                 checked={sortDirection === direction}
                 onChange={() => onSortDirectionChange(direction)}

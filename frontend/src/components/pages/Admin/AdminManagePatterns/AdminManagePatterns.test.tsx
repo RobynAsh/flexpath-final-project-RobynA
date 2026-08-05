@@ -69,6 +69,17 @@ const listedPatternNames = () =>
     .map((card) => within(card).getByRole('heading', { level: 3 }).textContent)
 
 describe('AdminManagePatterns sorting and filtering', () => {
+  test('links each pattern card to its edit route', () => {
+    renderPage()
+
+    const editLinks = screen.getAllByRole('link', {
+      name: 'Edit',
+    })
+
+    expect(editLinks[0]).toHaveAttribute('href', '/admin/patterns/edit/2')
+    expect(editLinks[1]).toHaveAttribute('href', '/admin/patterns/edit/1')
+  })
+
   test('sorts by the selected field and direction', () => {
     renderPage()
 

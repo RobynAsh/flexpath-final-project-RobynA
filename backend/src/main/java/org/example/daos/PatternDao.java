@@ -99,7 +99,7 @@ public class PatternDao extends JdbcDao {
      */
     public Pattern updatePattern(Pattern pattern) {
         String sql = "UPDATE patterns SET username = ?, category = ?, technique = ?, name = ?, designer = ?, "
-                + "description = ?, difficulty = ?, link = ?, image_url = ? WHERE pattern_id = ?;";
+                + "description = ?, difficulty = ?, link = ?, image_url = ?, updated_at = ? WHERE pattern_id = ?;";
         int rowsAffected = jdbcTemplate.update(
                 sql,
                 pattern.getUsername(),
@@ -111,6 +111,7 @@ public class PatternDao extends JdbcDao {
                 pattern.getDifficulty(),
                 pattern.getLink(),
                 pattern.getImageUrl(),
+                pattern.getUpdatedAt(),
                 pattern.getPatternId());
         if (rowsAffected == 0) {
             throw new DaoException("Zero rows affected, expected at least one.");

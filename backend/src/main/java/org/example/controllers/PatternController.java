@@ -21,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -150,5 +151,92 @@ public class PatternController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(pattern);
+    }
+
+    /**
+     * Updates a pattern and replaces its associated resources.
+     *
+     * @param patternId The id of the pattern to update.
+     * @param request The pattern, tags, yarn, tool, and material requirements to persist.
+     * @return The updated pattern, or a 404 when the pattern does not exist.
+     */
+    @PutMapping("/{patternId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    public ResponseEntity<Pattern> update(
+            @PathVariable int patternId,
+            @RequestBody CreatePatternDto request) {
+        if (patternDao.getPatternById(patternId) == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Pattern requestedPattern = request.toPattern();
+        requestedPattern.setPatternId(patternId);
+        requestedPattern.setUpdatedAt(LocalDateTime.now());
+        Pattern pattern = patternDao.updatePattern(requestedPattern);
+
+        // Note: Future enhancement, have front-end application pass the ID of each related entity.
+        // This way we don't have to delete all relations every update.
+        // We could also update the UI to update each "entity" (i.e. Pattern) at a time, instead of all at once.
+        patternTagDao.getPatternTagsByPatternId(patternId)
+                .forEach(patternTag ->
+                        patternTagDao.deletePatternTag(patternId, patternTag.getTagId()));
+        patternYarnDao.getPatternYarnsByPatternId(patternId)
+                .forEach(yarn -> patternYarnDao.deletePatternYarn(yarn.getPatternYarnId()));
+        patternToolDao.getPatternToolsByPatternId(patternId)
+                .forEach(tool -> patternToolDao.deletePatternTool(tool.getPatternToolId()));
+        patternMaterialDao.getPatternMaterialsByPatternId(patternId)
+                .forEach(material ->
+                        patternMaterialDao.deletePatternMaterial(material.getPatternMaterialId()));
+
+        if (request.tags() != null) {
+            for (String tagName : new LinkedHashSet<>(Arrays.asList(request.tags()))) {
+                Tag tag = tagDao.getTagByUsernameAndName(pattern.getUsername(), tagName);
+
+                if (tag == null) {
+                    tag = tagDao.createTag(new Tag(0, pattern.getUsername(), tagName));
+                }
+
+                patternTagDao.createPatternTag(new PatternTag(patternId, tag.getTagId()));
+            }
+        }
+
+        if (request.yarn() != null) {
+            for (PatternYarn yarn : request.yarn()) {
+                patternYarnDao.createPatternYarn(new PatternYarn(
+                        0,
+                        patternId,
+                        yarn.getSuggestedYarnId(),
+                        yarn.getDescription(),
+                        yarn.getWeight(),
+                        yarn.getYardage(),
+                        yarn.getGrams()));
+            }
+        }
+
+        if (request.tools() != null) {
+            for (PatternTool tool : request.tools()) {
+                patternToolDao.createPatternTool(new PatternTool(
+                        0,
+                        patternId,
+                        tool.getToolType(),
+                        tool.getSizeMm()));
+            }
+        }
+
+        if (request.materials() != null) {
+            for (PatternMaterial material : request.materials()) {
+                patternMaterialDao.createPatternMaterial(new PatternMaterial(
+                        0,
+                        patternId,
+                        material.getName(),
+                        material.getDescription(),
+                        material.getQuantity(),
+                        null,
+                        null));
+            }
+        }
+
+        return ResponseEntity.ok(pattern);
     }
 }

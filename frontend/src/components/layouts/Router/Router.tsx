@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Home } from '../../pages/Home/Home'
 import { Login } from '../../pages/Login/Login'
 import { ProtectedRoute } from './ProtectedRoute'
@@ -12,6 +12,7 @@ import { UnauthenticatedRoute } from './UnauthenticatedRoute'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AdminManagePatterns } from '../../pages/Admin/AdminManagePatterns/AdminManagePatterns'
 import { AdminAddPattern } from '../../pages/Admin/AdminManagePatterns/AdminAddPattern'
+import { AdminEditPattern } from '../../pages/Admin/AdminManagePatterns/AdminEditPattern'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +53,14 @@ export const Router = () => {
                   {/* Admin - Patterns */}
                   <Route path="patterns" element={<AdminManagePatterns />} />
                   <Route path="patterns/add" element={<AdminAddPattern />} />
+                  <Route
+                    path="patterns/edit"
+                    element={<Navigate to="/admin/patterns" replace />}
+                  />
+                  <Route
+                    path="patterns/edit/:patternId"
+                    element={<AdminEditPattern />}
+                  />
                 </Route>
               </Route>
             </Routes>
