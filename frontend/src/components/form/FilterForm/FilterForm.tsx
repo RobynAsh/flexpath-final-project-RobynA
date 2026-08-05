@@ -1,12 +1,8 @@
+import { Select, type SelectOption } from '../Select/Select'
 import { TextField } from '../TextField/TextField'
 
-export type FilterFieldOption = {
-  value: string
-  label: string
-}
-
 export type FilterFormProps = {
-  filterFields: FilterFieldOption[]
+  filterFields: SelectOption[]
   filterField: string
   filterText: string
   onFilterFieldChange: (_field: string) => void
@@ -29,23 +25,13 @@ export const FilterForm = ({
         event.preventDefault()
       }}
     >
-      <div className="flex flex-col gap-2">
-        <label htmlFor="filter-field" className="text-lg sm:text-xl">
-          Filter By
-        </label>
-        <select
-          id="filter-field"
-          className="border-thread-200 rounded-lg border-2 bg-transparent px-3 py-2 text-lg outline-none focus:border-olive-400 sm:text-xl"
-          value={filterField}
-          onChange={(event) => onFilterFieldChange(event.target.value)}
-        >
-          {filterFields.map((field) => (
-            <option key={field.value} value={field.value}>
-              {field.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Select
+        id="filter-field"
+        label="Filter By"
+        options={filterFields}
+        value={filterField}
+        onChange={(event) => onFilterFieldChange(event.target.value)}
+      />
       <TextField
         id="filter-text"
         label="Search Text"

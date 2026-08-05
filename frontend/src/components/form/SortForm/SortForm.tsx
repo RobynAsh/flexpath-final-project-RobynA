@@ -1,12 +1,9 @@
+import { Select, type SelectOption } from '../Select/Select'
+
 export type SortDirection = 'ascending' | 'descending'
 
-export type SortFieldOption = {
-  value: string
-  label: string
-}
-
 export type SortFormProps = {
-  sortFields: SortFieldOption[]
+  sortFields: SelectOption[]
   sortField: string
   sortDirection: SortDirection
   onSortFieldChange: (_field: string) => void
@@ -27,23 +24,14 @@ export const SortForm = ({
         event.preventDefault()
       }}
     >
-      <div className="flex min-w-48 flex-col gap-2">
-        <label htmlFor="sort-field" className="text-lg sm:text-xl">
-          Sort By
-        </label>
-        <select
-          id="sort-field"
-          className="border-thread-200 rounded-lg border-2 bg-transparent px-3 py-2 text-lg outline-none focus:border-olive-400 sm:text-xl"
-          value={sortField}
-          onChange={(event) => onSortFieldChange(event.target.value)}
-        >
-          {sortFields.map((field) => (
-            <option key={field.value} value={field.value}>
-              {field.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Select
+        id="sort-field"
+        label="Sort By"
+        options={sortFields}
+        value={sortField}
+        onChange={(event) => onSortFieldChange(event.target.value)}
+        containerClassName="min-w-48"
+      />
 
       <fieldset className="flex flex-col gap-2">
         <legend className="text-lg sm:text-xl">Sort Direction</legend>

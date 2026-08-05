@@ -190,6 +190,26 @@ public class TagDao extends JdbcDao {
     }
 
     /**
+     * Gets a tag by its owning username and name.
+     *
+     * @param username The username that owns the tag.
+     * @param name The tag name.
+     *
+     * @return The tag, or null if it does not exist.
+     */
+    public Tag getTagByUsernameAndName(String username, String name) {
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT * FROM tags WHERE username = ? AND name = ?;",
+                    this::mapToTag,
+                    username,
+                    name);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    /**
      * Creates a new tag.
      *
      * @param tag The tag.
