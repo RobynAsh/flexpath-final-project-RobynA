@@ -33,4 +33,16 @@ describe('Button', () => {
       'bg-transparent',
     )
   })
+
+  test('supports a disabled state', () => {
+    render(
+      <Button variant="secondary" disabled>
+        Delete Patterns
+      </Button>,
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Delete Patterns' }),
+    ).toBeDisabled()
+  })
 })

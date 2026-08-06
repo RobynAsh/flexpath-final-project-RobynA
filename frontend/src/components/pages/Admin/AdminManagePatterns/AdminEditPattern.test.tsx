@@ -4,6 +4,11 @@ import type { PatternDetails } from '../../../../services/useGetAllPatterns'
 import { AdminEditPattern } from './AdminEditPattern'
 
 const mockUpdatePattern = jest.fn()
+const mockDeletePatterns = {
+  mutate: jest.fn(),
+  isPending: false,
+  isError: false,
+}
 
 const patternDetails: PatternDetails = {
   pattern: {
@@ -65,6 +70,10 @@ jest.mock('../../../../services/useUpdatePattern', () => ({
   useUpdatePattern: () => ({ mutateAsync: mockUpdatePattern }),
 }))
 
+jest.mock('../../../../services/useDeletePatterns', () => ({
+  useDeletePatterns: () => mockDeletePatterns,
+}))
+
 const renderPage = () =>
   render(
     <MemoryRouter
@@ -85,6 +94,9 @@ describe('AdminEditPattern', () => {
   beforeEach(() => {
     mockUpdatePattern.mockReset()
     mockUpdatePattern.mockResolvedValue(undefined)
+    mockDeletePatterns.mutate.mockReset()
+    mockDeletePatterns.isPending = false
+    mockDeletePatterns.isError = false
   })
 
   test('loads the selected pattern into the same form fields and requirements', () => {
@@ -121,6 +133,40 @@ describe('AdminEditPattern', () => {
           ],
         }),
       ),
+    )
+    expect(await screen.findByText('Manage Patterns')).toBeInTheDocument()
+  })
+
+  test('opens a confirmation modal from the always-enabled delete button', () => {
+    renderPage()
+
+    const deleteButton = screen.getByRole('button', { name: 'Delete Pattern' })
+    expect(deleteButton).toBeEnabled()
+
+    fireEvent.click(deleteButton)
+
+    expect(
+      screen.getByRole('heading', { name: 'Delete Pattern?' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Are you sure you want to delete Zigzag Cardigan?'),
+    ).toBeInTheDocument()
+  })
+
+  test('deletes the current pattern and returns to the patterns page', async () => {
+    mockDeletePatterns.mutate.mockImplementation(
+      (_patternIds, options: { onSuccess: () => void }) => options.onSuccess(),
+    )
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Pattern' }))
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Delete Pattern' })[1],
+    )
+
+    expect(mockDeletePatterns.mutate).toHaveBeenCalledWith(
+      [42],
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
     expect(await screen.findByText('Manage Patterns')).toBeInTheDocument()
   })

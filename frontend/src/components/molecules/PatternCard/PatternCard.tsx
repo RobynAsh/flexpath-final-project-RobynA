@@ -1,24 +1,42 @@
-import { PatternDetails } from '../../../services/useGetAllPatterns'
+import type { PatternDetails } from '../../../services/useGetAllPatterns'
 import { Chip } from '../../atoms/Chip/Chip'
 import { Link } from 'react-router-dom'
 import { Button } from '../../atoms/Button/Button'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen } from '@fortawesome/free-solid-svg-icons'
+import { Checkbox } from '../../form/Checkbox/Checkbox'
 
 const displayValue = (value: string | number | null) =>
   value === null || value === '' ? 'Not provided' : value
 
 const formatDateTime = (value: string) => new Date(value).toLocaleString()
 
-export const PatternCard = ({ details }: { details: PatternDetails }) => {
+export const PatternCard = ({
+  details,
+  selected = false,
+  onSelectedChange,
+}: {
+  details: PatternDetails
+  selected?: boolean
+  onSelectedChange?: (_selected: boolean) => void
+}) => {
   const { pattern, tags, yarn, tools, materials } = details
 
   return (
     <article className="bg-surface shadow-card border-border overflow-hidden rounded-xl border">
       <div className="flex flex-col gap-2 bg-olive-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3>{pattern.name}</h3>
-          <p className="text-muted">Owned by {pattern.username}</p>
+        <div className="flex items-center gap-3">
+          {onSelectedChange && (
+            <Checkbox
+              id={`select-pattern-${pattern.patternId}`}
+              checked={selected}
+              onChange={(event) => onSelectedChange(event.target.checked)}
+            />
+          )}
+          <div>
+            <h3>{pattern.name}</h3>
+            <p className="text-muted">Owned by {pattern.username}</p>
+          </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <div className="text-sm sm:text-right">

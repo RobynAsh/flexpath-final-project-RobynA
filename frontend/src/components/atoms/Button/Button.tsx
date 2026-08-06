@@ -8,6 +8,7 @@ export const Button = ({
   type = 'button',
   form,
   onClick,
+  disabled = false,
 }: {
   children: React.ReactNode
   variant: 'primary' | 'secondary' | 'tertiary'
@@ -15,9 +16,10 @@ export const Button = ({
   type?: 'button' | 'submit' | 'reset' | undefined
   form?: string
   onClick?: () => void
+  disabled?: boolean
 }) => {
   const buttonClasses = useMemo(() => {
-    let classes = tw`w-full cursor-pointer rounded-md p-1 text-lg transition-colors duration-300 sm:text-xl `
+    let classes = tw`w-full cursor-pointer rounded-md p-1 text-lg transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-50 sm:text-xl `
     switch (variant) {
       case 'primary':
         classes += tw`bg-olive-500 text-olive-50 hover:bg-olive-600`
@@ -26,7 +28,7 @@ export const Button = ({
         classes += tw`border-2 border-rose-200 bg-transparent text-rose-400 hover:border-rose-300 hover:bg-rose-100`
         break
       case 'tertiary':
-        classes += tw`bg-thread-100 text-honey-400 hover:bg-thread-200 hover:text-thread-400`
+        classes += tw`border-2 border-thread-100 hover:border-thread-200 bg-thread-100 text-honey-400 hover:bg-thread-200 hover:text-thread-400`
         break
     }
 
@@ -51,7 +53,13 @@ export const Button = ({
   }, [variant])
 
   return (
-    <button type={type} form={form} className={buttonClasses} onClick={onClick}>
+    <button
+      type={type}
+      form={form}
+      className={buttonClasses}
+      onClick={onClick}
+      disabled={disabled}
+    >
       <span
         className={`${spanClasses} ${variant === 'primary' ? '' : 'p-1'} ${className}`}
       >

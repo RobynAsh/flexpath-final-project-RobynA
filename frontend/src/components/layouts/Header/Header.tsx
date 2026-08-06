@@ -38,7 +38,10 @@ export const Header = () => {
   return (
     <div className="shadow-card relative z-10 flex bg-rose-200 pb-1">
       <div className="flex grow border-b border-dashed border-rose-300">
-        <Container className="flex-col md:flex-row md:justify-between md:px-2 md:py-0">
+        <Container
+          className="flex-col gap-0 md:flex-row md:justify-between md:px-2 md:py-0"
+          gap={false}
+        >
           <div className="flex items-center justify-between">
             <div className="group inline-flex cursor-pointer items-center gap-2 self-start md:py-2">
               <img

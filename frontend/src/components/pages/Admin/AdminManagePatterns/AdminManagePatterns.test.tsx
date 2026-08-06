@@ -3,6 +3,13 @@ import { MemoryRouter } from 'react-router-dom'
 import type { PatternDetails } from '../../../../services/useGetAllPatterns'
 import { AdminManagePatterns } from './AdminManagePatterns'
 
+const mockDeletePatterns = {
+  mutate: jest.fn(),
+  reset: jest.fn(),
+  isPending: false,
+  isError: false,
+}
+
 const patterns: PatternDetails[] = [
   {
     pattern: {
@@ -54,6 +61,10 @@ jest.mock('../../../../services/useGetAllPatterns', () => ({
   }),
 }))
 
+jest.mock('../../../../services/useDeletePatterns', () => ({
+  useDeletePatterns: () => mockDeletePatterns,
+}))
+
 const renderPage = () =>
   render(
     <MemoryRouter
@@ -68,13 +79,31 @@ const listedPatternNames = () =>
     .getAllByRole('article')
     .map((card) => within(card).getByRole('heading', { level: 3 }).textContent)
 
+const patternCheckbox = (patternName: string) => {
+  const heading = screen.getByRole('heading', { level: 3, name: patternName })
+  const card = heading.closest('article')
+
+  if (!card) {
+    throw new Error(`Unable to find the pattern card for ${patternName}.`)
+  }
+
+  return within(card).getByRole('checkbox')
+}
+
 describe('AdminManagePatterns sorting and filtering', () => {
+  beforeEach(() => {
+    mockDeletePatterns.mutate.mockClear()
+    mockDeletePatterns.reset.mockClear()
+    mockDeletePatterns.isPending = false
+    mockDeletePatterns.isError = false
+  })
+
   test('links each pattern card to its edit route', () => {
     renderPage()
 
-    const editLinks = screen.getAllByRole('link', {
-      name: 'Edit',
-    })
+    const editLinks = screen
+      .getAllByRole('article')
+      .map((card) => within(card).getByRole('link'))
 
     expect(editLinks[0]).toHaveAttribute('href', '/admin/patterns/edit/2')
     expect(editLinks[1]).toHaveAttribute('href', '/admin/patterns/edit/1')
@@ -119,5 +148,59 @@ describe('AdminManagePatterns sorting and filtering', () => {
     expect(
       screen.getByText('No patterns match your search.'),
     ).toBeInTheDocument()
+  })
+
+  test('enables bulk deletion when a pattern is selected', () => {
+    renderPage()
+
+    const deleteButton = screen.getByRole('button', {
+      name: 'Delete Patterns',
+    })
+    expect(deleteButton).toBeDisabled()
+
+    fireEvent.click(patternCheckbox('Acorn Hat'))
+
+    expect(deleteButton).toBeEnabled()
+  })
+
+  test('keeps selections when filtering and sorting the list', () => {
+    renderPage()
+
+    fireEvent.click(patternCheckbox('Zigzag Cardigan'))
+    fireEvent.change(screen.getByLabelText('Search Text'), {
+      target: { value: 'acorn' },
+    })
+    fireEvent.change(screen.getByLabelText('Sort By'), {
+      target: { value: 'updatedAt' },
+    })
+    fireEvent.change(screen.getByLabelText('Search Text'), {
+      target: { value: '' },
+    })
+
+    expect(patternCheckbox('Zigzag Cardigan')).toBeChecked()
+  })
+
+  test('confirms the selected pattern names before deleting', () => {
+    renderPage()
+
+    fireEvent.click(patternCheckbox('Acorn Hat'))
+    fireEvent.click(patternCheckbox('Zigzag Cardigan'))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete 2 Patterns' }))
+
+    const modal = screen.getByRole('heading', {
+      name: 'Delete Patterns?',
+    }).parentElement
+
+    expect(modal).not.toBeNull()
+    expect(within(modal!).getByText('Acorn Hat')).toBeInTheDocument()
+    expect(within(modal!).getByText('Zigzag Cardigan')).toBeInTheDocument()
+
+    fireEvent.click(
+      within(modal!).getByRole('button', { name: 'Delete Patterns' }),
+    )
+    expect(mockDeletePatterns.mutate).toHaveBeenCalledWith(
+      expect.arrayContaining([1, 2]),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    )
   })
 })

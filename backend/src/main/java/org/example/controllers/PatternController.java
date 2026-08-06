@@ -239,4 +239,21 @@ public class PatternController {
 
         return ResponseEntity.ok(pattern);
     }
+
+    /**
+     * Deletes a pattern and its associated resources.
+     *
+     * @param patternId The id of the pattern to delete.
+     * @return A 204 response, or a 404 when the pattern does not exist.
+     */
+    @DeleteMapping("/{patternId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    public ResponseEntity<Void> delete(@PathVariable int patternId) {
+        if (patternDao.deletePattern(patternId) == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
+    }
 }

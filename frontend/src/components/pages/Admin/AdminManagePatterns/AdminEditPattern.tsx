@@ -1,5 +1,10 @@
 import { faFloppyDisk } from '@fortawesome/free-regular-svg-icons'
-import { faAdd, faArrowLeft, faXmark } from '@fortawesome/free-solid-svg-icons'
+import {
+  faAdd,
+  faArrowLeft,
+  faTrash,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
@@ -10,6 +15,7 @@ import {
   type PatternTool,
   type PatternYarn,
 } from '../../../../services/useAddPattern'
+import { useDeletePatterns } from '../../../../services/useDeletePatterns'
 import { useGetAllPatterns } from '../../../../services/useGetAllPatterns'
 import { useUpdatePattern } from '../../../../services/useUpdatePattern'
 import { Button } from '../../../atoms/Button/Button'
@@ -17,6 +23,7 @@ import { MultiSelect } from '../../../form/MultiSelect/MultiSelect'
 import { TextArea } from '../../../form/TextArea/TextArea'
 import { TextField } from '../../../form/TextField/TextField'
 import { Username } from '../../../form/Username/Username'
+import { Modal } from '../../../molecules/Modal/Modal'
 
 export const AdminEditPattern = () => {
   const navigate = useNavigate()
@@ -35,6 +42,8 @@ export const AdminEditPattern = () => {
 
   const { mutateAsync: updatePattern } = useUpdatePattern(patternId)
   const [updatePatternError, setUpdatePatternError] = useState('')
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const deletePatterns = useDeletePatterns()
 
   const {
     control,
@@ -270,6 +279,12 @@ export const AdminEditPattern = () => {
     }
   }
 
+  const confirmDelete = () => {
+    deletePatterns.mutate([patternId], {
+      onSuccess: () => navigate('/admin/patterns'),
+    })
+  }
+
   if (isPending) {
     return <p role="status">Loading pattern...</p>
   }
@@ -293,9 +308,20 @@ export const AdminEditPattern = () => {
 
   return (
     <div className="flex w-full max-w-4xl flex-col gap-5 md:self-center">
-      <div>
-        <h1>Edit Pattern</h1>
-        <h4>Update a pattern in the Frog Log catalog.</h4>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-0">
+        <div>
+          <h1>Edit Pattern</h1>
+          <h4>Update a pattern in the Frog Log catalog.</h4>
+        </div>
+        <div>
+          <Button
+            variant="secondary"
+            onClick={() => setIsDeleteModalOpen(true)}
+          >
+            <FontAwesomeIcon icon={faTrash} />
+            Delete Pattern
+          </Button>
+        </div>
       </div>
 
       {/* Pattern Details Form */}
@@ -642,6 +668,34 @@ export const AdminEditPattern = () => {
           </Button>
         </div>
       </div>
+
+      {isDeleteModalOpen && (
+        <Modal
+          headerText="Delete Pattern?"
+          closeModal={() => setIsDeleteModalOpen(false)}
+          closeDisabled={deletePatterns.isPending}
+          firstButton={{
+            label: 'Cancel',
+            onClick: () => setIsDeleteModalOpen(false),
+            disabled: deletePatterns.isPending,
+          }}
+          secondButton={{
+            label: deletePatterns.isPending ? 'Deleting...' : 'Delete Pattern',
+            onClick: confirmDelete,
+            disabled: deletePatterns.isPending,
+          }}
+        >
+          <p className="my-4">
+            Are you sure you want to delete {patternDetails.pattern.name}?
+          </p>
+
+          {deletePatterns.isError && (
+            <p role="alert" className="mb-4 text-rose-500">
+              Unable to delete the pattern. Please try again.
+            </p>
+          )}
+        </Modal>
+      )}
     </div>
   )
 }

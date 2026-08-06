@@ -516,6 +516,50 @@ public class PatternEndpointTests extends WebStoreTest {
     }
 
     /**
+     * Tests that deleting a pattern requires authentication.
+     */
+    @Test
+    @DisplayName("DELETE /api/patterns/{patternId} should return a 401 if not authorized")
+    public void deletePatternShouldFailIfNotAuthorized() {
+        var result = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/1",
+                HttpMethod.DELETE,
+                null,
+                Void.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+    }
+
+    /**
+     * Tests that an administrator can delete a pattern and its related data.
+     */
+    @Test
+    @DisplayName("DELETE /api/patterns/{patternId} should delete the pattern if authorized")
+    public void deletePatternShouldSucceedIfAuthorized() {
+        var createResult = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns",
+                HttpMethod.POST,
+                GetAuthEntity("test-admin", "admin", createPattern()),
+                Pattern.class);
+        var createdPattern = createResult.getBody();
+        assertNotNull(createdPattern);
+
+        var result = this.restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + createdPattern.getPatternId(),
+                HttpMethod.DELETE,
+                GetAuthEntity("test-admin", "admin"),
+                Void.class);
+
+        assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
+        assertEquals(
+                0,
+                getJdbcTemplate().queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.patterns WHERE pattern_id = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+    }
+
+    /**
      * Creates a pattern for use in endpoint requests.
      *
      * @return The pattern.
