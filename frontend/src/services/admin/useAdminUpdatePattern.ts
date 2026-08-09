@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useProfile } from '../providers/ProfileContext'
-import type { AddPatternRequest } from './useAddPattern'
-import { allPatternsQueryKey } from './useGetAllPatterns'
+import { useProfile } from '../../providers/ProfileContext'
+import type { AddPatternRequest } from './useAdminAddPattern'
+import { adminPatternsQueryKey } from './useAdminGetAllPatterns'
 
-const updatePattern = async (
+const updateAdminPattern = async (
   patternId: number,
   pattern: AddPatternRequest,
   token: string,
 ): Promise<void> => {
-  const response = await fetch(`/api/patterns/${patternId}`, {
+  const response = await fetch(`/api/admin/patterns/${patternId}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -22,14 +22,14 @@ const updatePattern = async (
   }
 }
 
-export const useUpdatePattern = (patternId: number) => {
+export const useAdminUpdatePattern = (patternId: number) => {
   const { jwtToken } = useProfile()
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (pattern: AddPatternRequest) =>
-      updatePattern(patternId, pattern, jwtToken),
+      updateAdminPattern(patternId, pattern, jwtToken),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: allPatternsQueryKey }),
+      queryClient.invalidateQueries({ queryKey: adminPatternsQueryKey }),
   })
 }

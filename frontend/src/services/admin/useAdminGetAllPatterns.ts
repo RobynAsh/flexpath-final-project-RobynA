@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useProfile } from '../providers/ProfileContext'
+import { useProfile } from '../../providers/ProfileContext'
 
 export type Pattern = {
   patternId: number
@@ -57,10 +57,12 @@ export type PatternDetails = {
   materials: PatternMaterial[]
 }
 
-export const allPatternsQueryKey = ['patterns', 'all'] as const
+export const adminPatternsQueryKey = ['admin', 'patterns', 'all'] as const
 
-const getAllPatterns = async (token: string): Promise<PatternDetails[]> => {
-  const response = await fetch('/api/patterns/all', {
+const getAllAdminPatterns = async (
+  token: string,
+): Promise<PatternDetails[]> => {
+  const response = await fetch('/api/admin/patterns/all', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -73,12 +75,12 @@ const getAllPatterns = async (token: string): Promise<PatternDetails[]> => {
   return response.json() as Promise<PatternDetails[]>
 }
 
-export const useGetAllPatterns = () => {
+export const useAdminGetAllPatterns = () => {
   const { jwtToken } = useProfile()
 
   return useQuery({
-    queryKey: [...allPatternsQueryKey, jwtToken],
-    queryFn: () => getAllPatterns(jwtToken),
+    queryKey: [...adminPatternsQueryKey, jwtToken],
+    queryFn: () => getAllAdminPatterns(jwtToken),
     enabled: Boolean(jwtToken),
     retry: false,
   })

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import type { PatternDetails } from '../../../../services/useGetAllPatterns'
+import type { PatternDetails } from '../../../../services/admin/useAdminGetAllPatterns'
 import { AdminEditPattern } from './AdminEditPattern'
 
 const mockUpdatePattern = jest.fn()
@@ -58,16 +58,20 @@ const patternDetails: PatternDetails = {
   ],
 }
 
-jest.mock('../../../../services/useGetAllPatterns', () => ({
-  useGetAllPatterns: () => ({
+jest.mock('../../../../services/admin/useAdminGetAllPatterns', () => ({
+  useAdminGetAllPatterns: () => ({
     data: [patternDetails],
     isPending: false,
     isError: false,
   }),
 }))
 
-jest.mock('../../../../services/useUpdatePattern', () => ({
-  useUpdatePattern: () => ({ mutateAsync: mockUpdatePattern }),
+jest.mock('../../../../services/admin/useAdminUpdatePattern', () => ({
+  useAdminUpdatePattern: () => ({ mutateAsync: mockUpdatePattern }),
+}))
+
+jest.mock('../../../../services/admin/useAdminDeletePatterns', () => ({
+  useAdminDeletePatterns: () => mockDeletePatterns,
 }))
 
 jest.mock('../../../../services/useDeletePatterns', () => ({

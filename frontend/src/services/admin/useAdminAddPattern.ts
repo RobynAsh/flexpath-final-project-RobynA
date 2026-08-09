@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useProfile } from '../providers/ProfileContext'
-import { allPatternsQueryKey } from './useGetAllPatterns'
+import { useProfile } from '../../providers/ProfileContext'
+import { adminPatternsQueryKey } from './useAdminGetAllPatterns'
 
 export type PatternYarn = {
   weight: number
@@ -36,11 +36,11 @@ export type AddPatternRequest = {
   materials: PatternMaterial[]
 }
 
-const addPattern = async (
+const addAdminPattern = async (
   pattern: AddPatternRequest,
   token: string,
 ): Promise<void> => {
-  const response = await fetch('/api/patterns', {
+  const response = await fetch('/api/admin/patterns', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -54,13 +54,14 @@ const addPattern = async (
   }
 }
 
-export const useAddPattern = () => {
+export const useAdminAddPattern = () => {
   const { jwtToken } = useProfile()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (pattern: AddPatternRequest) => addPattern(pattern, jwtToken),
+    mutationFn: (pattern: AddPatternRequest) =>
+      addAdminPattern(pattern, jwtToken),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: allPatternsQueryKey }),
+      queryClient.invalidateQueries({ queryKey: adminPatternsQueryKey }),
   })
 }

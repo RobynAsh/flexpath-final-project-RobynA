@@ -4,9 +4,9 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   type Pattern,
-  useGetAllPatterns,
-} from '../../../../services/useGetAllPatterns'
-import { useDeletePatterns } from '../../../../services/useDeletePatterns'
+  useAdminGetAllPatterns,
+} from '../../../../services/admin/useAdminGetAllPatterns'
+import { useAdminDeletePatterns } from '../../../../services/admin/useAdminDeletePatterns'
 import { Button } from '../../../atoms/Button/Button'
 import { DashBorder } from '../../../atoms/DashBorder/DashBorder'
 import { FilterForm } from '../../../form/FilterForm/FilterForm'
@@ -39,7 +39,7 @@ const sortFields: SelectOption[] = [
 ]
 
 export const AdminManagePatterns = () => {
-  const { data: patterns, isPending, isError } = useGetAllPatterns()
+  const { data: patterns, isPending, isError } = useAdminGetAllPatterns()
 
   // State for filter and sort options
   const [filterField, setFilterField] = useState<FilterField>('name')
@@ -52,7 +52,7 @@ export const AdminManagePatterns = () => {
     new Set(),
   )
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const deletePatterns = useDeletePatterns()
+  const deletePatterns = useAdminDeletePatterns()
 
   const selectedPatterns = useMemo(
     () =>

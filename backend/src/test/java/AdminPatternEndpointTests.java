@@ -25,15 +25,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SpringBootApplication.class)
 @Import(FinalTestConfiguration.class)
-public class PatternEndpointTests extends WebStoreTest {
+public class AdminPatternEndpointTests extends WebStoreTest {
     /**
      * Tests that listing patterns fails if not authorized.
      */
     @Test
-    @DisplayName("GET /api/patterns/all should return a 401 if not authorized")
+    @DisplayName("GET /api/admin/patterns/all should return a 401 if not authorized")
     public void listPatternsShouldFailIfNotAuthorized() {
         var result = this.restTemplate.getForEntity(
-                getBaseUrl() + "/api/patterns/all",
+                getBaseUrl() + "/api/admin/patterns/all",
                 String.class);
 
         assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
@@ -43,7 +43,7 @@ public class PatternEndpointTests extends WebStoreTest {
      * Tests that listing patterns returns each pattern and its associated resources.
      */
     @Test
-    @DisplayName("GET /api/patterns/all should return patterns with their associated resources")
+    @DisplayName("GET /api/admin/patterns/all should return patterns with their associated resources")
     public void listPatternsShouldReturnAssociatedResources() throws Exception {
         executeSql("INSERT INTO flexpath_final.patterns "
                 + "(username, category, technique, name) VALUES "
@@ -67,7 +67,7 @@ public class PatternEndpointTests extends WebStoreTest {
                 + "WHERE name = 'Listed Pattern';");
 
         var result = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns/all",
+                getBaseUrl() + "/api/admin/patterns/all",
                 HttpMethod.GET,
                 GetAuthEntity("test-admin", "admin"),
                 PatternDto[].class);
@@ -87,10 +87,10 @@ public class PatternEndpointTests extends WebStoreTest {
      * Tests that creating a pattern fails if not authorized.
      */
     @Test
-    @DisplayName("POST /api/patterns should return a 401 if not authorized")
+    @DisplayName("POST /api/admin/patterns should return a 401 if not authorized")
     public void createPatternShouldFailIfNotAuthorized() {
         var result = this.restTemplate.postForEntity(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 createPattern(),
                 String.class
         );
@@ -99,14 +99,33 @@ public class PatternEndpointTests extends WebStoreTest {
     }
 
     /**
+     * Tests that creating a pattern fails for an authenticated non-admin user.
+     */
+    @Test
+    @DisplayName("POST /api/admin/patterns should return a 403 for a non-admin")
+    public void createPatternShouldFailForNonAdmin() throws Exception {
+        executeSql("INSERT INTO flexpath_final.users (username, password) "
+                + "VALUES ('user', 'user');");
+
+        var result = this.restTemplate.exchange(
+                getBaseUrl() + "/api/admin/patterns",
+                HttpMethod.POST,
+                GetAuthEntity("user", "user", createPattern()),
+                String.class
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, result.getStatusCode());
+    }
+
+    /**
      * Tests that creating a pattern succeeds if authorized.
      */
     @Test
-    @DisplayName("POST /api/patterns should return a 201 and the created pattern if authorized")
+    @DisplayName("POST /api/admin/patterns should return a 201 and the created pattern for an admin")
     public void createPatternShouldSucceedIfAuthorized() {
         var requestEntity = GetAuthEntity("test-admin", "admin", createPattern());
         var result = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 HttpMethod.POST,
                 requestEntity,
                 Pattern.class
@@ -133,7 +152,7 @@ public class PatternEndpointTests extends WebStoreTest {
      * @throws Exception If test data cannot be created.
      */
     @Test
-    @DisplayName("POST /api/patterns should reuse and create tags for the pattern owner")
+    @DisplayName("POST /api/admin/patterns should reuse and create tags for the pattern owner")
     public void createPatternShouldAssignExistingAndNewTagsToPatternOwner() throws Exception {
         var request = new CreatePatternDto(
                 "pattern-owner",
@@ -157,7 +176,7 @@ public class PatternEndpointTests extends WebStoreTest {
                 + "VALUES ('pattern-owner', 'cozy');");
 
         var result = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 HttpMethod.POST,
                 requestEntity,
                 Pattern.class);
@@ -203,7 +222,7 @@ public class PatternEndpointTests extends WebStoreTest {
      * the newly created pattern.
      */
     @Test
-    @DisplayName("POST /api/patterns should create yarn requirements for the pattern")
+    @DisplayName("POST /api/admin/patterns should create yarn requirements for the pattern")
     public void createPatternShouldCreateYarnRequirements() {
         var yarn = new PatternYarn[] {
                 new PatternYarn(0, 999, null, "Body", 4, 251, 142),
@@ -226,7 +245,7 @@ public class PatternEndpointTests extends WebStoreTest {
         var requestEntity = GetAuthEntity("test-admin", "admin", request);
 
         var result = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 HttpMethod.POST,
                 requestEntity,
                 Pattern.class);
@@ -261,7 +280,7 @@ public class PatternEndpointTests extends WebStoreTest {
      * the newly created pattern.
      */
     @Test
-    @DisplayName("POST /api/patterns should create tool requirements for the pattern")
+    @DisplayName("POST /api/admin/patterns should create tool requirements for the pattern")
     public void createPatternShouldCreateToolRequirements() {
         var tools = new PatternTool[] {
                 new PatternTool(0, 999, "Crochet hook", 5.5f),
@@ -284,7 +303,7 @@ public class PatternEndpointTests extends WebStoreTest {
         var requestEntity = GetAuthEntity("test-admin", "admin", request);
 
         var result = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 HttpMethod.POST,
                 requestEntity,
                 Pattern.class);
@@ -316,7 +335,7 @@ public class PatternEndpointTests extends WebStoreTest {
      * for the newly created pattern.
      */
     @Test
-    @DisplayName("POST /api/patterns should create material requirements for the pattern")
+    @DisplayName("POST /api/admin/patterns should create material requirements for the pattern")
     public void createPatternShouldCreateMaterialRequirements() {
         var materials = new PatternMaterial[] {
                 new PatternMaterial(0, 999, "Buttons", "Wooden buttons", 6, null, null),
@@ -339,7 +358,7 @@ public class PatternEndpointTests extends WebStoreTest {
         var requestEntity = GetAuthEntity("test-admin", "admin", request);
 
         var result = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 HttpMethod.POST,
                 requestEntity,
                 Pattern.class);
@@ -371,7 +390,7 @@ public class PatternEndpointTests extends WebStoreTest {
      * Tests that updating a pattern replaces its details and associated resources.
      */
     @Test
-    @DisplayName("PUT /api/patterns/{patternId} should update the pattern and replace its resources")
+    @DisplayName("PUT /api/admin/patterns/{patternId} should update the pattern and replace its resources")
     public void updatePatternShouldReplacePatternAndResources() {
         var original = new CreatePatternDto(
                 "test-admin",
@@ -394,7 +413,7 @@ public class PatternEndpointTests extends WebStoreTest {
                         new PatternMaterial(0, 0, "Old material", null, 1, null, null)
                 });
         var createResult = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 HttpMethod.POST,
                 GetAuthEntity("test-admin", "admin", original),
                 Pattern.class);
@@ -422,7 +441,7 @@ public class PatternEndpointTests extends WebStoreTest {
                         new PatternMaterial(0, 0, "New material", "Updated", 2, null, null)
                 });
         var updateResult = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns/" + createdPattern.getPatternId(),
+                getBaseUrl() + "/api/admin/patterns/" + createdPattern.getPatternId(),
                 HttpMethod.PUT,
                 GetAuthEntity("test-admin", "admin", update),
                 Pattern.class);
@@ -460,7 +479,7 @@ public class PatternEndpointTests extends WebStoreTest {
      * Tests that updating only associated resources still updates the pattern timestamp.
      */
     @Test
-    @DisplayName("PUT /api/patterns/{patternId} should update updatedAt for resource-only changes")
+    @DisplayName("PUT /api/admin/patterns/{patternId} should update updatedAt for resource-only changes")
     public void updatePatternShouldUpdateTimestampForResourceOnlyChanges() throws Exception {
         var request = new CreatePatternDto(
                 "test-admin",
@@ -477,7 +496,7 @@ public class PatternEndpointTests extends WebStoreTest {
                 null,
                 null);
         var createResult = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 HttpMethod.POST,
                 GetAuthEntity("test-admin", "admin", request),
                 Pattern.class);
@@ -505,7 +524,7 @@ public class PatternEndpointTests extends WebStoreTest {
                 request.tools(),
                 request.materials());
         var updateResult = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns/" + createdPattern.getPatternId(),
+                getBaseUrl() + "/api/admin/patterns/" + createdPattern.getPatternId(),
                 HttpMethod.PUT,
                 GetAuthEntity("test-admin", "admin", resourceOnlyUpdate),
                 Pattern.class);
@@ -519,10 +538,10 @@ public class PatternEndpointTests extends WebStoreTest {
      * Tests that deleting a pattern requires authentication.
      */
     @Test
-    @DisplayName("DELETE /api/patterns/{patternId} should return a 401 if not authorized")
+    @DisplayName("DELETE /api/admin/patterns/{patternId} should return a 401 if not authorized")
     public void deletePatternShouldFailIfNotAuthorized() {
         var result = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns/1",
+                getBaseUrl() + "/api/admin/patterns/1",
                 HttpMethod.DELETE,
                 null,
                 Void.class);
@@ -534,10 +553,10 @@ public class PatternEndpointTests extends WebStoreTest {
      * Tests that an administrator can delete a pattern and its related data.
      */
     @Test
-    @DisplayName("DELETE /api/patterns/{patternId} should delete the pattern if authorized")
+    @DisplayName("DELETE /api/admin/patterns/{patternId} should delete the pattern for an admin")
     public void deletePatternShouldSucceedIfAuthorized() {
         var createResult = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns",
+                getBaseUrl() + "/api/admin/patterns",
                 HttpMethod.POST,
                 GetAuthEntity("test-admin", "admin", createPattern()),
                 Pattern.class);
@@ -545,7 +564,7 @@ public class PatternEndpointTests extends WebStoreTest {
         assertNotNull(createdPattern);
 
         var result = this.restTemplate.exchange(
-                getBaseUrl() + "/api/patterns/" + createdPattern.getPatternId(),
+                getBaseUrl() + "/api/admin/patterns/" + createdPattern.getPatternId(),
                 HttpMethod.DELETE,
                 GetAuthEntity("test-admin", "admin"),
                 Void.class);

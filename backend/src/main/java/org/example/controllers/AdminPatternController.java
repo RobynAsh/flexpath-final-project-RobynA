@@ -27,14 +27,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * Controller for patterns.
- * This class is responsible for handling HTTP requests related to patterns.
+ * Admin controller for patterns.
+ * This class is responsible for handling admin HTTP requests related to patterns.
  */
 @RestController
 @CrossOrigin
-@RequestMapping("/api/patterns")
-@PreAuthorize("isAuthenticated()")
-public class PatternController {
+@RequestMapping("/api/admin/patterns")
+@PreAuthorize("hasAuthority('ADMIN')")
+public class AdminPatternController {
     /**
      * The pattern data access object.
      */
@@ -77,7 +77,6 @@ public class PatternController {
      * @return The patterns with their tags, yarn, tools, and materials.
      */
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public List<PatternDto> list() {
         return patternDao.getPatterns().stream()
                 .map(pattern -> new PatternDto(
@@ -161,7 +160,6 @@ public class PatternController {
      * @return The updated pattern, or a 404 when the pattern does not exist.
      */
     @PutMapping("/{patternId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     public ResponseEntity<Pattern> update(
             @PathVariable int patternId,
@@ -247,7 +245,6 @@ public class PatternController {
      * @return A 204 response, or a 404 when the pattern does not exist.
      */
     @DeleteMapping("/{patternId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     public ResponseEntity<Void> delete(@PathVariable int patternId) {
         if (patternDao.deletePattern(patternId) == 0) {

@@ -5,12 +5,12 @@ import { useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  useAddPattern,
+  useAdminAddPattern,
   type AddPatternRequest,
   type PatternMaterial,
   type PatternTool,
   type PatternYarn,
-} from '../../../../services/useAddPattern'
+} from '../../../../services/admin/useAdminAddPattern'
 import { Button } from '../../../atoms/Button/Button'
 import { MultiSelect } from '../../../form/MultiSelect/MultiSelect'
 import { TextArea } from '../../../form/TextArea/TextArea'
@@ -19,7 +19,7 @@ import { Username } from '../../../form/Username/Username'
 
 export const AdminAddPattern = () => {
   const navigate = useNavigate()
-  const { mutateAsync: addPattern } = useAddPattern()
+  const { mutateAsync: addPattern } = useAdminAddPattern()
   const [addPatternError, setAddPatternError] = useState('')
 
   const {

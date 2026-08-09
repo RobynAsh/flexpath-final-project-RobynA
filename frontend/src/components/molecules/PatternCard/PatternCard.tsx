@@ -1,4 +1,4 @@
-import type { PatternDetails } from '../../../services/useGetAllPatterns'
+import type { PatternDetails } from '../../../services/admin/useAdminGetAllPatterns'
 import { Chip } from '../../atoms/Chip/Chip'
 import { Link } from 'react-router-dom'
 import { Button } from '../../atoms/Button/Button'

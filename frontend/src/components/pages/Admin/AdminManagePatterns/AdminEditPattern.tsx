@@ -14,10 +14,10 @@ import {
   type PatternMaterial,
   type PatternTool,
   type PatternYarn,
-} from '../../../../services/useAddPattern'
-import { useDeletePatterns } from '../../../../services/useDeletePatterns'
-import { useGetAllPatterns } from '../../../../services/useGetAllPatterns'
-import { useUpdatePattern } from '../../../../services/useUpdatePattern'
+} from '../../../../services/admin/useAdminAddPattern'
+import { useAdminDeletePatterns } from '../../../../services/admin/useAdminDeletePatterns'
+import { useAdminGetAllPatterns } from '../../../../services/admin/useAdminGetAllPatterns'
+import { useAdminUpdatePattern } from '../../../../services/admin/useAdminUpdatePattern'
 import { Button } from '../../../atoms/Button/Button'
 import { MultiSelect } from '../../../form/MultiSelect/MultiSelect'
 import { TextArea } from '../../../form/TextArea/TextArea'
@@ -35,15 +35,15 @@ export const AdminEditPattern = () => {
     data: patterns,
     isPending,
     isError: isLoadError,
-  } = useGetAllPatterns()
+  } = useAdminGetAllPatterns()
   const patternDetails = patterns?.find(
     ({ pattern }) => pattern.patternId === patternId,
   )
 
-  const { mutateAsync: updatePattern } = useUpdatePattern(patternId)
+  const { mutateAsync: updatePattern } = useAdminUpdatePattern(patternId)
   const [updatePatternError, setUpdatePatternError] = useState('')
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const deletePatterns = useDeletePatterns()
+  const deletePatterns = useAdminDeletePatterns()
 
   const {
     control,
