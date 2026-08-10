@@ -1,3 +1,13 @@
 {
-  "tailwindCSS.experimental.classRegex": ["tw`([^`]*)`"]
+  "tailwindCSS.experimental.classRegex": ["tw`([^`]*)`"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.formatOnSave": true
 }

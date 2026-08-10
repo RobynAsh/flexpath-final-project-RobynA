@@ -47,10 +47,7 @@ export const PatternCard = ({
               <strong>Updated:</strong> {formatDateTime(pattern.updatedAt)}
             </p>
           </div>
-          <Link
-            to={`/admin/patterns/edit/${pattern.patternId}`}
-            aria-label="Edit"
-          >
+          <Link to={`/admin/patterns/edit/${pattern.patternId}`}>
             <Button variant="tertiary">
               <FontAwesomeIcon icon={faPen} />
             </Button>

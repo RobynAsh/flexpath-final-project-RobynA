@@ -19,16 +19,16 @@ export const Button = ({
   disabled?: boolean
 }) => {
   const buttonClasses = useMemo(() => {
-    let classes = tw`w-full cursor-pointer rounded-md p-1 text-lg transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-50 sm:text-xl `
+    let classes = tw`w-full cursor-pointer rounded-md text-lg transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-50 sm:text-xl `
     switch (variant) {
       case 'primary':
-        classes += tw`bg-olive-500 text-olive-50 hover:bg-olive-600`
+        classes += tw`bg-olive-500 text-olive-50 hover:bg-olive-600 p-0.5`
         break
       case 'secondary':
-        classes += tw`border-2 border-rose-200 bg-transparent text-rose-400 hover:border-rose-300 hover:bg-rose-100`
+        classes += tw`border-2 border-rose-200 bg-transparent text-rose-400 hover:border-rose-300 hover:bg-rose-100 p-1`
         break
       case 'tertiary':
-        classes += tw`border-2 border-thread-100 hover:border-thread-200 bg-thread-100 text-honey-400 hover:bg-thread-200 hover:text-thread-400`
+        classes += tw`border-2 border-thread-100 hover:border-thread-200 bg-thread-100 text-honey-400 hover:bg-thread-200 hover:text-thread-400 p-1`
         break
     }
 
@@ -36,7 +36,7 @@ export const Button = ({
   }, [variant])
 
   const spanClasses = useMemo(() => {
-    let classes = tw`flex items-center justify-center gap-2 p-1 `
+    let classes = tw`flex items-center justify-center gap-2 p-1 rounded-md `
     switch (variant) {
       case 'primary':
         classes += tw`border border-dashed border-olive-300`

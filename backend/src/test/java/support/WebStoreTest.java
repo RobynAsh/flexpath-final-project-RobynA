@@ -67,7 +67,9 @@ public class WebStoreTest {
      * @throws SQLException If an error occurs while executing the SQL statement.
      */
     protected void executeSql(String sql) throws SQLException {
-        try(var statement = dataSource.getConnection().createStatement()) {
+        // Note: Had to extrapolate this to two vars because of a bug that caused Tests to hang
+        try (var connection = dataSource.getConnection();
+                var statement = connection.createStatement()) {
             statement.execute(sql);
         }
     }

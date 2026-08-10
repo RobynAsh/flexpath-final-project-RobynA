@@ -74,10 +74,6 @@ jest.mock('../../../../services/admin/useAdminDeletePatterns', () => ({
   useAdminDeletePatterns: () => mockDeletePatterns,
 }))
 
-jest.mock('../../../../services/useDeletePatterns', () => ({
-  useDeletePatterns: () => mockDeletePatterns,
-}))
-
 const renderPage = () =>
   render(
     <MemoryRouter

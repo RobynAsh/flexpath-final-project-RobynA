@@ -49,6 +49,21 @@ public class PatternDao extends JdbcDao {
     }
 
     /**
+     * Gets a limited number of patterns by username.
+     *
+     * @param username The username that owns the given patterns.
+     * @param limit The maximum number of patterns to return.
+     * @return List of Pattern
+     */
+    public List<Pattern> getPatternsByUsername(String username, int limit) {
+        return jdbcTemplate.query(
+                "SELECT * FROM patterns WHERE username = ? ORDER BY pattern_id LIMIT ?;",
+                this::mapToPattern,
+                username,
+                limit);
+    }
+
+    /**
      * Gets a pattern by id.
      *
      * @param patternId The pattern id.

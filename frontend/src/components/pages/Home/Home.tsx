@@ -1,3 +1,98 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useProfile } from '../../../providers/ProfileContext'
+import { Button } from '../../atoms/Button/Button'
+import { DashBorder } from '../../atoms/DashBorder/DashBorder'
+import { DashedCard } from '../../atoms/DashedCard/DashedCard'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
+
 export const Home = () => {
-  return <>Home</>
+  const { profile } = useProfile()
+
+  return (
+    <div className="flex flex-col">
+      <div className="mb-2 flex flex-col gap-1">
+        <h1>Welcome back, {profile?.username}</h1>
+        <DashBorder>
+          <img
+            src="/assets/heart-doodle.png"
+            alt="Heart Doodle"
+            className="h-5 w-5"
+          />
+        </DashBorder>
+      </div>
+
+      <div className="mb-6 flex flex-col gap-4 md:flex-row">
+        <div>
+          <DashedCard
+            background="bg-paper-300"
+            borderColor="border-thread-300"
+            className="grow"
+          >
+            <h3 className="border-thread-300 mb-2 border-b pb-1">Quick Add</h3>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <Button variant="primary">
+                <FontAwesomeIcon icon={faPlus} />
+                Add Pattern
+              </Button>
+              <Button variant="primary">
+                <FontAwesomeIcon icon={faPlus} />
+                Add Project
+              </Button>
+              <Button variant="primary">
+                <FontAwesomeIcon icon={faPlus} />
+                Add Yarn
+              </Button>
+              <Button variant="primary">
+                <FontAwesomeIcon icon={faPlus} />
+                Add Tool
+              </Button>
+            </div>
+          </DashedCard>
+        </div>
+
+        <DashedCard className="grow">
+          <h3 className="border-paper-300 mb-2 border-b pb-1">At a Glance</h3>
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
+            <DashedCard
+              className="w-full text-center"
+              background="bg-honey-100"
+              borderColor="border-honey-200"
+            >
+              <p className="text-2xl font-bold">12</p>
+              <p className="text-lg">Projects Total</p>
+            </DashedCard>
+            <DashedCard
+              className="w-full text-center"
+              background="bg-grey-100"
+              borderColor="border-grey-200"
+            >
+              <p className="text-2xl font-bold">4</p>
+              <p className="text-lg">Todo</p>
+            </DashedCard>
+            <DashedCard
+              className="w-full text-center"
+              background="bg-blue-100"
+              borderColor="border-blue-200"
+            >
+              <p className="text-2xl font-bold">3</p>
+              <p className="text-lg">In Progress</p>
+            </DashedCard>
+            <DashedCard
+              className="w-full text-center"
+              background="bg-olive-100"
+              borderColor="border-olive-200"
+            >
+              <p className="text-2xl font-bold">5</p>
+              <p className="text-lg">Finished</p>
+            </DashedCard>
+          </div>
+        </DashedCard>
+      </div>
+
+      <div>
+        <h2>Recently Updated Projects</h2>
+        <p>Place holder for recently updated projects.</p>
+      </div>
+    </div>
+  )
 }
