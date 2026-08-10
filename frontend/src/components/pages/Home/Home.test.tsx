@@ -4,6 +4,7 @@ import {
   ProfileContext,
   type ProfileContextValue,
 } from '../../../providers/ProfileContext'
+import { MemoryRouter } from 'react-router-dom'
 
 const setJwtToken = jest.fn()
 export const profileValue: ProfileContextValue = {
@@ -15,9 +16,14 @@ export const profileValue: ProfileContextValue = {
 describe('Home', () => {
   test('renders its page label', () => {
     render(
-      <ProfileContext.Provider value={profileValue}>
-        <Home />
-      </ProfileContext.Provider>,
+      <MemoryRouter
+        initialEntries={['/']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <ProfileContext.Provider value={profileValue}>
+          <Home />
+        </ProfileContext.Provider>
+      </MemoryRouter>,
     )
     expect(screen.getByText('Welcome back,')).toBeInTheDocument()
   })

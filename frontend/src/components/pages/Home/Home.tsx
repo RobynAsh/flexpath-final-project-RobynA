@@ -4,6 +4,7 @@ import { Button } from '../../atoms/Button/Button'
 import { DashBorder } from '../../atoms/DashBorder/DashBorder'
 import { DashedCard } from '../../atoms/DashedCard/DashedCard'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { Link } from 'react-router-dom'
 
 export const Home = () => {
   const { profile } = useProfile()
@@ -30,22 +31,30 @@ export const Home = () => {
           >
             <h3 className="border-thread-300 mb-2 border-b pb-1">Quick Add</h3>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-              <Button variant="primary">
-                <FontAwesomeIcon icon={faPlus} />
-                Add Pattern
-              </Button>
-              <Button variant="primary">
-                <FontAwesomeIcon icon={faPlus} />
-                Add Project
-              </Button>
-              <Button variant="primary">
-                <FontAwesomeIcon icon={faPlus} />
-                Add Yarn
-              </Button>
-              <Button variant="primary">
-                <FontAwesomeIcon icon={faPlus} />
-                Add Tool
-              </Button>
+              <Link to="/patterns/add">
+                <Button variant="primary">
+                  <FontAwesomeIcon icon={faPlus} />
+                  Add Pattern
+                </Button>
+              </Link>
+              <Link to="/projects/add">
+                <Button variant="primary">
+                  <FontAwesomeIcon icon={faPlus} />
+                  Add Project
+                </Button>
+              </Link>
+              <Link to="/stash/yarn/add">
+                <Button variant="primary">
+                  <FontAwesomeIcon icon={faPlus} />
+                  Add Yarn
+                </Button>
+              </Link>
+              <Link to="/stash/tool/add">
+                <Button variant="primary">
+                  <FontAwesomeIcon icon={faPlus} />
+                  Add Tool
+                </Button>
+              </Link>
             </div>
           </DashedCard>
         </div>
@@ -58,7 +67,7 @@ export const Home = () => {
               background="bg-honey-100"
               borderColor="border-honey-200"
             >
-              <p className="text-2xl font-bold">12</p>
+              <p className="text-2xl font-bold">0</p>
               <p className="text-lg">Projects Total</p>
             </DashedCard>
             <DashedCard
@@ -66,7 +75,7 @@ export const Home = () => {
               background="bg-grey-100"
               borderColor="border-grey-200"
             >
-              <p className="text-2xl font-bold">4</p>
+              <p className="text-2xl font-bold">0</p>
               <p className="text-lg">Todo</p>
             </DashedCard>
             <DashedCard
@@ -74,7 +83,7 @@ export const Home = () => {
               background="bg-blue-100"
               borderColor="border-blue-200"
             >
-              <p className="text-2xl font-bold">3</p>
+              <p className="text-2xl font-bold">0</p>
               <p className="text-lg">In Progress</p>
             </DashedCard>
             <DashedCard
@@ -82,7 +91,7 @@ export const Home = () => {
               background="bg-olive-100"
               borderColor="border-olive-200"
             >
-              <p className="text-2xl font-bold">5</p>
+              <p className="text-2xl font-bold">0</p>
               <p className="text-lg">Finished</p>
             </DashedCard>
           </div>

@@ -13,6 +13,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AdminManagePatterns } from '../../pages/Admin/AdminManagePatterns/AdminManagePatterns'
 import { AdminAddPattern } from '../../pages/Admin/AdminManagePatterns/AdminAddPattern'
 import { AdminEditPattern } from '../../pages/Admin/AdminManagePatterns/AdminEditPattern'
+import { Patterns } from '../../pages/Patterns/Patterns'
+import { Projects } from '../../pages/Projects/Projects'
+import { AddPattern } from '../../pages/Patterns/AddPattern/AddPattern'
+import { UpdatePattern } from '../../pages/Patterns/UpdatePattern/UpdatePattern'
+import { Pattern } from '../../pages/Patterns/Pattern/Pattern'
+import { AddProject } from '../../pages/Projects/AddProject/AddProject'
+import { UpdateProject } from '../../pages/Projects/UpdateProject/UpdateProject'
+import { Project } from '../../pages/Projects/Project/Project'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +50,24 @@ export const Router = () => {
               <Route element={<ProtectedRoute />}>
                 {/* Home */}
                 <Route index element={<Home />} />
+
+                {/* Patterns */}
+                <Route path="/patterns" element={<Patterns />} />
+                <Route path="/patterns/add" element={<AddPattern />} />
+                <Route
+                  path="/patterns/:patternId/update"
+                  element={<UpdatePattern />}
+                />
+                <Route path="/patterns/:patternId" element={<Pattern />} />
+
+                {/* Projects */}
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/add" element={<AddProject />} />
+                <Route
+                  path="/projects/:projectId/update"
+                  element={<UpdateProject />}
+                />
+                <Route path="/projects/:projectId" element={<Project />} />
 
                 {/* Log-out */}
                 <Route path="/logout" element={<Logout />} />

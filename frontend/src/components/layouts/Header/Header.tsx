@@ -4,6 +4,7 @@ import { HeaderNavLink } from './HeaderNavLink'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useProfile } from '../../../providers/ProfileContext'
+import { Link } from 'react-router-dom'
 
 export const Header = () => {
   const { profile, profileStatus } = useProfile()
@@ -43,7 +44,10 @@ export const Header = () => {
           gap={false}
         >
           <div className="flex items-center justify-between">
-            <div className="group inline-flex cursor-pointer items-center gap-2 self-start md:py-2">
+            <Link
+              to="/"
+              className="group inline-flex cursor-pointer items-center gap-2 self-start md:py-2"
+            >
               <img
                 src="/assets/icon.png"
                 alt="Frog Log Logo"
@@ -52,7 +56,7 @@ export const Header = () => {
               <h1 className="text-4xl font-bold text-rose-50 transition-colors duration-300 group-hover:text-rose-500">
                 Frog Log
               </h1>
-            </div>
+            </Link>
             <div
               className="group cursor-pointer md:hidden"
               onClick={() => {
@@ -67,11 +71,13 @@ export const Header = () => {
           </div>
           {profileStatus === 'authenticated' && (
             <div
-              className={`flex flex-col gap-4 md:flex-row ${isMobileMenuOpen ? 'max-h-48 pt-2 md:pt-0' : 'max-h-0 pt-0'} ${isMobileTransitionSet ? 'transition-all' : ''} overflow-hidden md:max-h-full md:overflow-visible`}
+              className={`flex flex-col gap-4 md:flex-row ${isMobileMenuOpen ? 'max-h-68 pt-2 md:pt-0' : 'max-h-0 pt-0'} ${isMobileTransitionSet ? 'transition-all' : ''} overflow-hidden duration-300 md:max-h-full md:overflow-visible`}
             >
               {profile?.isAdmin && (
                 <HeaderNavLink to="/admin">Admin</HeaderNavLink>
               )}
+              <HeaderNavLink to="/patterns">Patterns</HeaderNavLink>
+              <HeaderNavLink to="/projects">Projects</HeaderNavLink>
               <HeaderNavLink to="/logout">Logout</HeaderNavLink>
             </div>
           )}
