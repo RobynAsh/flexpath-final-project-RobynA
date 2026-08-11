@@ -3,40 +3,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  type Pattern,
-  useAdminGetAllPatterns,
-} from '../../../../services/admin/useAdminGetAllPatterns'
+  type FilterField,
+  type SortField,
+  usePatternsFilterSort,
+} from '../../../../hooks/usePatternsFilterSort'
+import { useAdminGetAllPatterns } from '../../../../services/admin/useAdminGetAllPatterns'
 import { useAdminDeletePatterns } from '../../../../services/admin/useAdminDeletePatterns'
 import { Button } from '../../../atoms/Button/Button'
 import { DashBorder } from '../../../atoms/DashBorder/DashBorder'
 import { FilterForm } from '../../../form/FilterForm/FilterForm'
-import type { SelectOption } from '../../../form/Select/Select'
 import { SortForm, type SortDirection } from '../../../form/SortForm/SortForm'
 import { Modal } from '../../../molecules/Modal/Modal'
 import { PatternCard } from '../../../molecules/PatternCard/PatternCard'
-
-type SortField = 'name' | 'createdAt' | 'updatedAt'
-type FilterField = Exclude<keyof Pattern, 'patternId'>
-
-const filterFields: SelectOption[] = [
-  { value: 'name', label: 'Name' },
-  { value: 'username', label: 'Username' },
-  { value: 'designer', label: 'Designer' },
-  { value: 'category', label: 'Category' },
-  { value: 'technique', label: 'Technique' },
-  { value: 'difficulty', label: 'Difficulty' },
-  { value: 'description', label: 'Description' },
-  { value: 'link', label: 'Pattern URL' },
-  { value: 'imageUrl', label: 'Image URL' },
-  { value: 'createdAt', label: 'Created At' },
-  { value: 'updatedAt', label: 'Updated At' },
-]
-
-const sortFields: SelectOption[] = [
-  { value: 'name', label: 'Name' },
-  { value: 'createdAt', label: 'Created At' },
-  { value: 'updatedAt', label: 'Updated At' },
-]
 
 export const AdminManagePatterns = () => {
   const { data: patterns, isPending, isError } = useAdminGetAllPatterns()
@@ -93,37 +71,13 @@ export const AdminManagePatterns = () => {
     setIsDeleteModalOpen(false)
   }
 
-  const visiblePatterns = useMemo(() => {
-    if (!patterns) {
-      return []
-    }
-
-    const normalizedFilter = filterText.trim().toLocaleLowerCase()
-    const filteredPatterns = normalizedFilter
-      ? patterns.filter(({ pattern }) => {
-          const fieldValue = pattern[filterField]
-          const searchableValue =
-            filterField === 'createdAt' || filterField === 'updatedAt'
-              ? `${fieldValue} ${new Date(String(fieldValue)).toLocaleString()}`
-              : String(fieldValue ?? '')
-
-          return searchableValue.toLocaleLowerCase().includes(normalizedFilter)
-        })
-      : patterns
-
-    return [...filteredPatterns].sort((first, second) => {
-      const firstValue = first.pattern[sortField]
-      const secondValue = second.pattern[sortField]
-      const comparison =
-        sortField === 'name'
-          ? firstValue.localeCompare(secondValue, undefined, {
-              sensitivity: 'base',
-            })
-          : new Date(firstValue).getTime() - new Date(secondValue).getTime()
-
-      return sortDirection === 'ascending' ? comparison : -comparison
-    })
-  }, [filterField, filterText, patterns, sortDirection, sortField])
+  const { filterFields, sortFields, visiblePatterns } = usePatternsFilterSort({
+    patterns,
+    filterField,
+    filterText,
+    sortField,
+    sortDirection,
+  })
 
   return (
     <div className="flex w-full max-w-6xl flex-col gap-5 md:self-center">
@@ -223,6 +177,8 @@ export const AdminManagePatterns = () => {
               onSelectedChange={(selected) =>
                 setPatternSelected(details.pattern.patternId, selected)
               }
+              editPath={`/admin/patterns/edit/${details.pattern.patternId}`}
+              showUsername={true}
             />
           ))}
         </div>

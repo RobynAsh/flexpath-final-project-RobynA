@@ -1,4 +1,4 @@
-import type { PatternDetails } from '../../../services/admin/useAdminGetAllPatterns'
+import type { PatternDetails } from '../../../services/types/patternTypes'
 import { Chip } from '../../atoms/Chip/Chip'
 import { Link } from 'react-router-dom'
 import { Button } from '../../atoms/Button/Button'
@@ -15,10 +15,14 @@ export const PatternCard = ({
   details,
   selected = false,
   onSelectedChange,
+  editPath,
+  showUsername = false,
 }: {
   details: PatternDetails
   selected?: boolean
   onSelectedChange?: (_selected: boolean) => void
+  editPath: string
+  showUsername?: boolean
 }) => {
   const { pattern, tags, yarn, tools, materials } = details
 
@@ -35,7 +39,9 @@ export const PatternCard = ({
           )}
           <div>
             <h3>{pattern.name}</h3>
-            <p className="text-muted">Owned by {pattern.username}</p>
+            {showUsername && (
+              <p className="text-muted">Owned by {pattern.username}</p>
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -47,7 +53,7 @@ export const PatternCard = ({
               <strong>Updated:</strong> {formatDateTime(pattern.updatedAt)}
             </p>
           </div>
-          <Link to={`/admin/patterns/edit/${pattern.patternId}`}>
+          <Link to={editPath}>
             <Button variant="tertiary">
               <FontAwesomeIcon icon={faPen} />
             </Button>
