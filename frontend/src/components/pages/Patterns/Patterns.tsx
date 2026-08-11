@@ -19,8 +19,9 @@ export const Patterns = () => {
 
   const [filterField, setFilterField] = useState<FilterField>('name')
   const [filterText, setFilterText] = useState('')
-  const [sortField, setSortField] = useState<SortField>('name')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('ascending')
+  const [sortField, setSortField] = useState<SortField>('updatedAt')
+  const [sortDirection, setSortDirection] =
+    useState<SortDirection>('descending')
 
   const { filterFields, sortFields, visiblePatterns } = usePatternsFilterSort({
     patterns,

@@ -1,5 +1,9 @@
 import org.example.SpringBootApplication;
 import org.example.dtos.PatternDto;
+import org.example.models.Pattern;
+import org.example.models.PatternMaterial;
+import org.example.models.PatternTool;
+import org.example.models.PatternYarn;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,6 +12,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import support.FinalTestConfiguration;
 import support.WebStoreTest;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -101,6 +108,91 @@ public class PatternEndpointTests extends WebStoreTest {
                 String.class);
 
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+    }
+
+    /**
+     * Tests that creating a pattern requires authentication.
+     */
+    @Test
+    @DisplayName("POST /api/patterns should return a 401 if not authenticated")
+    public void createPatternShouldFailIfNotAuthenticated() {
+        var result = restTemplate.postForEntity(
+                getBaseUrl() + "/api/patterns",
+                Map.of("name", "Unauthenticated Pattern"),
+                String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+    }
+
+    /**
+     * Tests that a created pattern and its resources belong to the authenticated user.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("POST /api/patterns should create a pattern for the authenticated user")
+    public void createPatternShouldUseAuthenticatedUser() throws Exception {
+        executeSql("INSERT INTO flexpath_final.users (username, password) "
+                + "VALUES ('pattern-user', 'password');");
+
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("category", "Sweater");
+        request.put("technique", "Crochet");
+        request.put("name", "My Cardigan");
+        request.put("designer", "Robin");
+        request.put("description", "A cozy cardigan.");
+        request.put("difficulty", "Beginner");
+        request.put("link", "https://example.com/pattern");
+        request.put("imageUrl", "https://example.com/pattern.jpg");
+        request.put("tags", new String[] {"cozy"});
+        request.put("yarn", new PatternYarn[] {
+                new PatternYarn(0, 0, null, "Body", 4, 251, 142)
+        });
+        request.put("tools", new PatternTool[] {
+                new PatternTool(0, 0, "Crochet hook", 5.5f)
+        });
+        request.put("materials", new PatternMaterial[] {
+                new PatternMaterial(0, 0, "Buttons", "Wooden", 6, null, null)
+        });
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns",
+                HttpMethod.POST,
+                GetAuthEntity("pattern-user", "password", request),
+                Pattern.class);
+        var createdPattern = result.getBody();
+
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
+        assertNotNull(createdPattern);
+        assertEquals("pattern-user", createdPattern.getUsername());
+        assertEquals("My Cardigan", createdPattern.getName());
+
+        var jdbcTemplate = getJdbcTemplate();
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.tags WHERE username = ? AND name = ?;",
+                        Integer.class,
+                        "pattern-user",
+                        "cozy"));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_yarns WHERE pattern_id = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_tools WHERE pattern_id = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId()));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_materials WHERE pattern_id = ?;",
+                        Integer.class,
+                        createdPattern.getPatternId()));
     }
 
     /**

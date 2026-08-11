@@ -6,18 +6,30 @@ import org.example.daos.PatternTagDao;
 import org.example.daos.PatternToolDao;
 import org.example.daos.PatternYarnDao;
 import org.example.daos.TagDao;
+import org.example.dtos.CreatePatternDto;
 import org.example.dtos.PatternDto;
 import org.example.models.Pattern;
+import org.example.models.PatternMaterial;
+import org.example.models.PatternTag;
+import org.example.models.PatternTool;
+import org.example.models.PatternYarn;
+import org.example.models.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -94,5 +106,72 @@ public class PatternController {
                         patternToolDao.getPatternToolsByPatternId(pattern.getPatternId()),
                         patternMaterialDao.getPatternMaterialsByPatternId(pattern.getPatternId())))
                 .toList();
+    }
+
+    /**
+     * Creates a pattern owned by the currently logged in user.
+     *
+     * @param principal The currently logged in user.
+     * @param request The pattern and its associated resource requirements.
+     * @return The created pattern.
+     */
+    @PostMapping
+    @Transactional
+    public ResponseEntity<Pattern> create(
+            Principal principal,
+            @RequestBody CreatePatternDto request) {
+        Pattern requestedPattern = request.toPattern();
+        requestedPattern.setUsername(principal.getName());
+        Pattern pattern = patternDao.createPattern(requestedPattern);
+
+        if (request.tags() != null) {
+            for (String tagName : new LinkedHashSet<>(Arrays.asList(request.tags()))) {
+                Tag tag = tagDao.getTagByUsernameAndName(pattern.getUsername(), tagName);
+
+                if (tag == null) {
+                    tag = tagDao.createTag(new Tag(0, pattern.getUsername(), tagName));
+                }
+
+                patternTagDao.createPatternTag(new PatternTag(pattern.getPatternId(), tag.getTagId()));
+            }
+        }
+
+        if (request.yarn() != null) {
+            for (PatternYarn yarn : request.yarn()) {
+                patternYarnDao.createPatternYarn(new PatternYarn(
+                        0,
+                        pattern.getPatternId(),
+                        yarn.getSuggestedYarnId(),
+                        yarn.getDescription(),
+                        yarn.getWeight(),
+                        yarn.getYardage(),
+                        yarn.getGrams()));
+            }
+        }
+
+        if (request.tools() != null) {
+            for (PatternTool tool : request.tools()) {
+                patternToolDao.createPatternTool(new PatternTool(
+                        0,
+                        pattern.getPatternId(),
+                        tool.getToolType(),
+                        tool.getSizeMm()));
+            }
+        }
+
+        if (request.materials() != null) {
+            for (PatternMaterial material : request.materials()) {
+                patternMaterialDao.createPatternMaterial(new PatternMaterial(
+                        0,
+                        pattern.getPatternId(),
+                        material.getName(),
+                        material.getDescription(),
+                        material.getQuantity(),
+                        null,
+                        null));
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(pattern);
     }
 }

@@ -5,7 +5,7 @@ export const Container = ({
 }: {
   children: React.ReactNode
   className?: string
-  gap: boolean
+  gap?: boolean
 }) => {
   return (
     <div
