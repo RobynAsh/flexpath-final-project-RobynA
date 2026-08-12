@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useProfile } from '../providers/ProfileContext'
-import { allPatternsQueryKey } from './useGetAllPatterns'
+import { patternsQueryKey } from './useGetPatterns'
 
 const deletePattern = async (patternId: number, token: string) => {
   const response = await fetch(`/api/patterns/${patternId}`, {
@@ -25,6 +25,6 @@ export const useDeletePatterns = () => {
         patternIds.map((patternId) => deletePattern(patternId, jwtToken)),
       ),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: allPatternsQueryKey }),
+      queryClient.invalidateQueries({ queryKey: patternsQueryKey }),
   })
 }

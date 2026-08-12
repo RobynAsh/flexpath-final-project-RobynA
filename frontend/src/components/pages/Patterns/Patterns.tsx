@@ -106,6 +106,7 @@ export const Patterns = () => {
               details={details}
               key={details.pattern.patternId}
               editPath={`/patterns/${details.pattern.patternId}/update`}
+              linkTitle
             />
           ))}
         </div>

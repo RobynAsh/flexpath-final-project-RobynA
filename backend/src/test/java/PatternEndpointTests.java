@@ -111,6 +111,54 @@ public class PatternEndpointTests extends WebStoreTest {
     }
 
     /**
+     * Tests that a user can get one of their patterns.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/patterns/{patternId} should return an owned pattern")
+    public void getPatternShouldReturnOwnedPattern() throws Exception {
+        createUsersAndPatterns();
+        Integer patternId = getJdbcTemplate().queryForObject(
+                "SELECT pattern_id FROM flexpath_final.patterns WHERE name = 'Second Pattern';",
+                Integer.class);
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + patternId,
+                HttpMethod.GET,
+                GetAuthEntity("pattern-user", "password"),
+                PatternDto.class);
+        var pattern = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(pattern);
+        assertEquals("Second Pattern", pattern.pattern().getName());
+        assertEquals("pattern-user", pattern.pattern().getUsername());
+    }
+
+    /**
+     * Tests that a user cannot get another user's pattern.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/patterns/{patternId} should hide patterns owned by another user")
+    public void getPatternShouldNotReturnAnotherUsersPattern() throws Exception {
+        createUsersAndPatterns();
+        Integer patternId = getJdbcTemplate().queryForObject(
+                "SELECT pattern_id FROM flexpath_final.patterns WHERE name = 'Other User Pattern';",
+                Integer.class);
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + patternId,
+                HttpMethod.GET,
+                GetAuthEntity("pattern-user", "password"),
+                String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+    }
+
+    /**
      * Tests that creating a pattern requires authentication.
      */
     @Test

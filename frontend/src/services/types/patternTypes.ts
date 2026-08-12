@@ -1,13 +1,13 @@
 export type Pattern = {
   patternId: number
   username: string
-  category: string | null
-  technique: string | null
+  category: string
+  technique: string
   name: string
-  designer: string | null
+  designer: string
   description: string | null
-  difficulty: string | null
-  link: string | null
+  difficulty: string
+  link: string
   imageUrl: string | null
   createdAt: string
   updatedAt: string

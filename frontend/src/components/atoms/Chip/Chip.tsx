@@ -7,8 +7,6 @@ interface ChipProps {
 }
 
 export const Chip = ({ label, onRemove }: ChipProps) => {
-  const displayLabel = label.charAt(0).toUpperCase() + label.slice(1)
-
   return (
     <span className="text-ink flex items-center gap-1 rounded-full bg-olive-100 px-3 py-1 text-base capitalize">
       {label}
@@ -16,7 +14,7 @@ export const Chip = ({ label, onRemove }: ChipProps) => {
         <button
           type="button"
           onClick={onRemove}
-          aria-label={`Remove ${displayLabel}`}
+          aria-label={`Remove ${label.charAt(0).toUpperCase()}${label.slice(1)}`}
           className="cursor-pointer text-olive-300 hover:text-olive-600"
         >
           <FontAwesomeIcon icon={faXmark} />

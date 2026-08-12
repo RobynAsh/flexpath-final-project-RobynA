@@ -21,7 +21,7 @@ const patterns: PatternDetails[] = [
       designer: 'Robin',
       description: 'A warm layer',
       difficulty: 'Intermediate',
-      link: null,
+      link: 'https://www.example.com/zigzag-cardigan',
       imageUrl: null,
       createdAt: '2025-01-01T12:00:00.000Z',
       updatedAt: '2025-03-01T12:00:00.000Z',
@@ -41,7 +41,7 @@ const patterns: PatternDetails[] = [
       designer: 'Fern',
       description: 'A quick hat',
       difficulty: 'Beginner',
-      link: null,
+      link: 'https://www.example.com/acorn-hat',
       imageUrl: null,
       createdAt: '2025-02-01T12:00:00.000Z',
       updatedAt: '2025-02-15T12:00:00.000Z',
@@ -101,12 +101,12 @@ describe('AdminManagePatterns sorting and filtering', () => {
   test('links each pattern card to its edit route', () => {
     renderPage()
 
-    const editLinks = screen
-      .getAllByRole('article')
-      .map((card) => within(card).getByRole('link'))
-
-    expect(editLinks[0]).toHaveAttribute('href', '/admin/patterns/edit/2')
-    expect(editLinks[1]).toHaveAttribute('href', '/admin/patterns/edit/1')
+    expect(
+      screen.getByRole('link', { name: 'Edit Acorn Hat' }),
+    ).toHaveAttribute('href', '/admin/patterns/edit/2')
+    expect(
+      screen.getByRole('link', { name: 'Edit Zigzag Cardigan' }),
+    ).toHaveAttribute('href', '/admin/patterns/edit/1')
   })
 
   test('sorts by the selected field and direction', () => {

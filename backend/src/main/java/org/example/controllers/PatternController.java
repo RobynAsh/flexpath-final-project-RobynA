@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -106,6 +107,31 @@ public class PatternController {
                         patternToolDao.getPatternToolsByPatternId(pattern.getPatternId()),
                         patternMaterialDao.getPatternMaterialsByPatternId(pattern.getPatternId())))
                 .toList();
+    }
+
+    /**
+     * Gets one pattern owned by the currently logged in user.
+     *
+     * @param principal The currently logged in user.
+     * @param patternId The pattern id.
+     * @return The pattern and its associated resources, or a 404 if it is not owned by the user.
+     */
+    @GetMapping("/{patternId}")
+    public ResponseEntity<PatternDto> get(Principal principal, @PathVariable int patternId) {
+        Pattern pattern = patternDao.getPatternById(patternId);
+
+        if (pattern == null || !pattern.getUsername().equals(principal.getName())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(new PatternDto(
+                pattern,
+                patternTagDao.getPatternTagsByPatternId(patternId).stream()
+                        .map(patternTag -> tagDao.getTagById(patternTag.getTagId()))
+                        .toList(),
+                patternYarnDao.getPatternYarnsByPatternId(patternId),
+                patternToolDao.getPatternToolsByPatternId(patternId),
+                patternMaterialDao.getPatternMaterialsByPatternId(patternId)));
     }
 
     /**

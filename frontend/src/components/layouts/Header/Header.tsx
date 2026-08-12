@@ -71,7 +71,7 @@ export const Header = () => {
           </div>
           {profileStatus === 'authenticated' && (
             <div
-              className={`flex flex-col gap-4 md:flex-row ${isMobileMenuOpen ? 'max-h-68 pt-2 md:pt-0' : 'max-h-0 pt-0'} ${isMobileTransitionSet ? 'transition-all' : ''} overflow-hidden duration-300 md:max-h-full md:overflow-visible`}
+              className={`flex flex-col gap-4 md:flex-row ${isMobileMenuOpen ? 'max-h-68 pt-2 md:pt-0' : 'max-h-0 pt-0'} ${isMobileTransitionSet ? 'transition-all duration-300' : ''} overflow-hidden md:max-h-full md:overflow-visible`}
             >
               {profile?.isAdmin && (
                 <HeaderNavLink to="/admin">Admin</HeaderNavLink>

@@ -17,12 +17,14 @@ export const PatternCard = ({
   onSelectedChange,
   editPath,
   showUsername = false,
+  linkTitle = false,
 }: {
   details: PatternDetails
   selected?: boolean
   onSelectedChange?: (_selected: boolean) => void
   editPath: string
   showUsername?: boolean
+  linkTitle?: boolean
 }) => {
   const { pattern, tags, yarn, tools, materials } = details
 
@@ -38,7 +40,18 @@ export const PatternCard = ({
             />
           )}
           <div>
-            <h3>{pattern.name}</h3>
+            <h3>
+              {linkTitle ? (
+                <Link
+                  className="text-olive-600 underline decoration-2 underline-offset-4 hover:text-olive-400"
+                  to={`/patterns/${pattern.patternId}`}
+                >
+                  {pattern.name}
+                </Link>
+              ) : (
+                pattern.name
+              )}
+            </h3>
             {showUsername && (
               <p className="text-muted">Owned by {pattern.username}</p>
             )}
@@ -53,7 +66,7 @@ export const PatternCard = ({
               <strong>Updated:</strong> {formatDateTime(pattern.updatedAt)}
             </p>
           </div>
-          <Link to={editPath}>
+          <Link to={editPath} aria-label={`Edit ${pattern.name}`}>
             <Button variant="tertiary">
               <FontAwesomeIcon icon={faPen} />
             </Button>
