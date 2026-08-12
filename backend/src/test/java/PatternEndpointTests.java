@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import support.FinalTestConfiguration;
@@ -244,6 +245,97 @@ public class PatternEndpointTests extends WebStoreTest {
     }
 
     /**
+     * Tests that updating a pattern requires authentication.
+     */
+    @Test
+    @DisplayName("PUT /api/patterns/{patternId} should return a 401 if not authenticated")
+    public void updatePatternShouldFailIfNotAuthenticated() {
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/1",
+                HttpMethod.PUT,
+                new HttpEntity<>(Map.of("name", "Unauthenticated Pattern")),
+                String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+    }
+
+    /**
+     * Tests that a user can update one of their patterns without supplying a username.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("PUT /api/patterns/{patternId} should update an owned pattern as the authenticated user")
+    public void updatePatternShouldUpdateOwnedPatternAsAuthenticatedUser() throws Exception {
+        createUsersAndPatterns();
+        Integer patternId = getJdbcTemplate().queryForObject(
+                "SELECT pattern_id FROM flexpath_final.patterns WHERE name = 'Second Pattern';",
+                Integer.class);
+
+        Map<String, Object> request = createUpdateRequest("Updated Pattern");
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + patternId,
+                HttpMethod.PUT,
+                GetAuthEntity("pattern-user", "password", request),
+                Pattern.class);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertEquals("pattern-user", result.getBody().getUsername());
+        assertEquals("Updated Pattern", result.getBody().getName());
+        assertEquals(
+                1,
+                getJdbcTemplate().queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_yarns "
+                                + "WHERE pattern_id = ? AND description = 'Updated yarn';",
+                        Integer.class,
+                        patternId));
+        assertEquals(
+                1,
+                getJdbcTemplate().queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_tags pt "
+                                + "JOIN flexpath_final.tags t ON t.tag_id = pt.tag_id "
+                                + "WHERE pt.pattern_id = ? AND t.username = 'pattern-user' "
+                                + "AND t.name = 'updated-tag';",
+                        Integer.class,
+                        patternId));
+    }
+
+    /**
+     * Tests that a user cannot update another user's pattern or its resources.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("PUT /api/patterns/{patternId} should hide and preserve another user's pattern")
+    public void updatePatternShouldNotUpdateAnotherUsersPattern() throws Exception {
+        createUsersAndPatterns();
+        Integer patternId = getJdbcTemplate().queryForObject(
+                "SELECT pattern_id FROM flexpath_final.patterns WHERE name = 'Other User Pattern';",
+                Integer.class);
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + patternId,
+                HttpMethod.PUT,
+                GetAuthEntity("pattern-user", "password", createUpdateRequest("Stolen Pattern")),
+                String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+        assertEquals(
+                "Other User Pattern",
+                getJdbcTemplate().queryForObject(
+                        "SELECT name FROM flexpath_final.patterns WHERE pattern_id = ?;",
+                        String.class,
+                        patternId));
+        assertEquals(
+                0,
+                getJdbcTemplate().queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.pattern_yarns WHERE pattern_id = ?;",
+                        Integer.class,
+                        patternId));
+    }
+
+    /**
      * Tests that deleting a pattern requires authentication.
      */
     @Test
@@ -327,5 +419,34 @@ public class PatternEndpointTests extends WebStoreTest {
                 + "('other-user', 'Other User Pattern'), "
                 + "('pattern-user', 'Second Pattern'), "
                 + "('pattern-user', 'Third Pattern');");
+    }
+
+    /**
+     * Creates an update request that intentionally omits the username.
+     *
+     * @param name The updated pattern name.
+     * @return The update request.
+     */
+    private Map<String, Object> createUpdateRequest(String name) {
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("category", "Accessory");
+        request.put("technique", "Knitting");
+        request.put("name", name);
+        request.put("designer", "Updated Designer");
+        request.put("description", "Updated description");
+        request.put("difficulty", "Intermediate");
+        request.put("link", "https://example.com/updated");
+        request.put("imageUrl", "https://example.com/updated.jpg");
+        request.put("tags", new String[] {"updated-tag"});
+        request.put("yarn", new PatternYarn[] {
+                new PatternYarn(0, 0, null, "Updated yarn", 4, 250, 100)
+        });
+        request.put("tools", new PatternTool[] {
+                new PatternTool(0, 0, "Updated needles", 5.5f)
+        });
+        request.put("materials", new PatternMaterial[] {
+                new PatternMaterial(0, 0, "Updated material", "New", 2, null, null)
+        });
+        return request;
     }
 }

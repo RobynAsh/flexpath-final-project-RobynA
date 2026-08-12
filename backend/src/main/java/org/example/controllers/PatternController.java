@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -200,6 +202,95 @@ public class PatternController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(pattern);
+    }
+
+    /**
+     * Updates a pattern owned by the currently logged in user and replaces its
+     * associated resources.
+     *
+     * @param principal The currently logged in user.
+     * @param patternId The pattern id.
+     * @param request The pattern and its associated resource requirements.
+     * @return The updated pattern, or a 404 if it is not owned by the user.
+     */
+    @PutMapping("/{patternId}")
+    @Transactional
+    public ResponseEntity<Pattern> update(
+            Principal principal,
+            @PathVariable int patternId,
+            @RequestBody CreatePatternDto request) {
+        Pattern existingPattern = patternDao.getPatternById(patternId);
+
+        if (existingPattern == null || !existingPattern.getUsername().equals(principal.getName())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Pattern requestedPattern = request.toPattern();
+        requestedPattern.setPatternId(patternId);
+        requestedPattern.setUsername(principal.getName());
+        requestedPattern.setUpdatedAt(LocalDateTime.now());
+        Pattern pattern = patternDao.updatePattern(requestedPattern);
+
+        patternTagDao.getPatternTagsByPatternId(patternId)
+                .forEach(patternTag ->
+                        patternTagDao.deletePatternTag(patternId, patternTag.getTagId()));
+        patternYarnDao.getPatternYarnsByPatternId(patternId)
+                .forEach(yarn -> patternYarnDao.deletePatternYarn(yarn.getPatternYarnId()));
+        patternToolDao.getPatternToolsByPatternId(patternId)
+                .forEach(tool -> patternToolDao.deletePatternTool(tool.getPatternToolId()));
+        patternMaterialDao.getPatternMaterialsByPatternId(patternId)
+                .forEach(material ->
+                        patternMaterialDao.deletePatternMaterial(material.getPatternMaterialId()));
+
+        if (request.tags() != null) {
+            for (String tagName : new LinkedHashSet<>(Arrays.asList(request.tags()))) {
+                Tag tag = tagDao.getTagByUsernameAndName(principal.getName(), tagName);
+
+                if (tag == null) {
+                    tag = tagDao.createTag(new Tag(0, principal.getName(), tagName));
+                }
+
+                patternTagDao.createPatternTag(new PatternTag(patternId, tag.getTagId()));
+            }
+        }
+
+        if (request.yarn() != null) {
+            for (PatternYarn yarn : request.yarn()) {
+                patternYarnDao.createPatternYarn(new PatternYarn(
+                        0,
+                        patternId,
+                        yarn.getSuggestedYarnId(),
+                        yarn.getDescription(),
+                        yarn.getWeight(),
+                        yarn.getYardage(),
+                        yarn.getGrams()));
+            }
+        }
+
+        if (request.tools() != null) {
+            for (PatternTool tool : request.tools()) {
+                patternToolDao.createPatternTool(new PatternTool(
+                        0,
+                        patternId,
+                        tool.getToolType(),
+                        tool.getSizeMm()));
+            }
+        }
+
+        if (request.materials() != null) {
+            for (PatternMaterial material : request.materials()) {
+                patternMaterialDao.createPatternMaterial(new PatternMaterial(
+                        0,
+                        patternId,
+                        material.getName(),
+                        material.getDescription(),
+                        material.getQuantity(),
+                        null,
+                        null));
+            }
+        }
+
+        return ResponseEntity.ok(pattern);
     }
 
     /**
