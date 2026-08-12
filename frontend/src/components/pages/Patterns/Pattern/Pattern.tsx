@@ -1,7 +1,8 @@
 import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useDeletePattern } from '../../../../services/useDeletePattern'
 import { useGetPattern } from '../../../../services/useGetPattern'
 import { Button } from '../../../atoms/Button/Button'
 import { Chip } from '../../../atoms/Chip/Chip'
@@ -12,11 +13,19 @@ const displayValue = (value: string | null) => value || 'Not provided'
 const formatDateTime = (value: string) => new Date(value).toLocaleString()
 
 export const Pattern = () => {
+  const navigate = useNavigate()
   const { patternId: patternIdParam } = useParams()
   const patternId = Number(patternIdParam)
   const { data: details, isPending, isError } = useGetPattern(patternId)
+  const deletePattern = useDeletePattern()
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  const confirmDelete = () => {
+    deletePattern.mutate(patternId, {
+      onSuccess: () => navigate('/patterns'),
+    })
+  }
 
   if (isPending) {
     return <p role="status">Loading pattern...</p>
@@ -201,18 +210,27 @@ export const Pattern = () => {
         <Modal
           headerText="Delete Pattern?"
           closeModal={() => setIsDeleteModalOpen(false)}
+          closeDisabled={deletePattern.isPending}
           firstButton={{
             label: 'Cancel',
             onClick: () => setIsDeleteModalOpen(false),
+            disabled: deletePattern.isPending,
           }}
           secondButton={{
-            label: 'Delete Pattern',
-            onClick: () => undefined,
+            label: deletePattern.isPending ? 'Deleting...' : 'Delete Pattern',
+            onClick: confirmDelete,
+            disabled: deletePattern.isPending,
           }}
         >
           <p className="my-4">
             Are you sure you want to delete {pattern.name}?
           </p>
+
+          {deletePattern.isError && (
+            <p role="alert" className="mb-4 text-rose-500">
+              Unable to delete the pattern. Please try again.
+            </p>
+          )}
         </Modal>
       )}
     </div>

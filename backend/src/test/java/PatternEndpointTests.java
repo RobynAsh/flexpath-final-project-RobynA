@@ -244,6 +244,77 @@ public class PatternEndpointTests extends WebStoreTest {
     }
 
     /**
+     * Tests that deleting a pattern requires authentication.
+     */
+    @Test
+    @DisplayName("DELETE /api/patterns/{patternId} should return a 401 if not authenticated")
+    public void deletePatternShouldFailIfNotAuthenticated() {
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/1",
+                HttpMethod.DELETE,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+    }
+
+    /**
+     * Tests that a user can delete one of their patterns.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("DELETE /api/patterns/{patternId} should delete an owned pattern")
+    public void deletePatternShouldDeleteOwnedPattern() throws Exception {
+        createUsersAndPatterns();
+        Integer patternId = getJdbcTemplate().queryForObject(
+                "SELECT pattern_id FROM flexpath_final.patterns WHERE name = 'Second Pattern';",
+                Integer.class);
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + patternId,
+                HttpMethod.DELETE,
+                GetAuthEntity("pattern-user", "password"),
+                String.class);
+
+        assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
+        assertEquals(
+                0,
+                getJdbcTemplate().queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.patterns WHERE pattern_id = ?;",
+                        Integer.class,
+                        patternId));
+    }
+
+    /**
+     * Tests that a user cannot delete another user's pattern.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("DELETE /api/patterns/{patternId} should hide patterns owned by another user")
+    public void deletePatternShouldNotDeleteAnotherUsersPattern() throws Exception {
+        createUsersAndPatterns();
+        Integer patternId = getJdbcTemplate().queryForObject(
+                "SELECT pattern_id FROM flexpath_final.patterns WHERE name = 'Other User Pattern';",
+                Integer.class);
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns/" + patternId,
+                HttpMethod.DELETE,
+                GetAuthEntity("pattern-user", "password"),
+                String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+        assertEquals(
+                1,
+                getJdbcTemplate().queryForObject(
+                        "SELECT COUNT(*) FROM flexpath_final.patterns WHERE pattern_id = ?;",
+                        Integer.class,
+                        patternId));
+    }
+
+    /**
      * Creates two users and patterns owned by each user.
      *
      * @throws Exception If test data cannot be created.
