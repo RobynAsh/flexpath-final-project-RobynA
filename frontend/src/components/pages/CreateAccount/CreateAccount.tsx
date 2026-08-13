@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form'
 import {
   useCreateAccount,
   type CreateAccountCredentials,
-} from '../../../services/useCreateAccount'
+} from '../../../services/patterns/useCreateAccount'
 
 type CreateAccountForm = CreateAccountCredentials & {
   confirmPassword: string

@@ -1,7 +1,10 @@
 import { useMemo } from 'react'
 import type { SelectOption } from '../components/form/Select/Select'
 import type { SortDirection } from '../components/form/SortForm/SortForm'
-import type { Pattern, PatternDetails } from '../services/types/patternTypes'
+import type {
+  Pattern,
+  PatternDetails,
+} from '../services/patterns/types/patternTypes'
 
 export type SortField = 'name' | 'createdAt' | 'updatedAt'
 export type FilterField = Exclude<keyof Pattern, 'patternId'>

@@ -9,7 +9,7 @@ import type {
   PatternMaterial,
   PatternTool,
   PatternYarn,
-} from '../../../services/types/patternFormTypes'
+} from '../../../services/patterns/types/patternFormTypes'
 import { Button } from '../../atoms/Button/Button'
 import { MultiSelect } from '../../form/MultiSelect/MultiSelect'
 import { TextArea } from '../../form/TextArea/TextArea'

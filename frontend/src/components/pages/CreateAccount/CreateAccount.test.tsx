@@ -6,7 +6,7 @@ const mockCreateAccount = jest.fn(
   async (_credentials: { username: string; password: string }) => undefined,
 )
 
-jest.mock('../../../services/useCreateAccount', () => ({
+jest.mock('../../../services/patterns/useCreateAccount', () => ({
   useCreateAccount: () => ({ mutateAsync: mockCreateAccount }),
 }))
 

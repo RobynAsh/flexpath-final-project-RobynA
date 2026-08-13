@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import type { PatternDetails } from '../../../../services/admin/useAdminGetAllPatterns'
+import type { PatternDetails } from '../../../../services/patterns/admin/useAdminGetAllPatterns'
 import { AdminManagePatterns } from './AdminManagePatterns'
 
 const mockDeletePatterns = {
@@ -53,7 +53,7 @@ const patterns: PatternDetails[] = [
   },
 ]
 
-jest.mock('../../../../services/admin/useAdminGetAllPatterns', () => ({
+jest.mock('../../../../services/patterns/admin/useAdminGetAllPatterns', () => ({
   useAdminGetAllPatterns: () => ({
     data: patterns,
     isPending: false,
@@ -61,7 +61,7 @@ jest.mock('../../../../services/admin/useAdminGetAllPatterns', () => ({
   }),
 }))
 
-jest.mock('../../../../services/admin/useAdminDeletePatterns', () => ({
+jest.mock('../../../../services/patterns/admin/useAdminDeletePatterns', () => ({
   useAdminDeletePatterns: () => mockDeletePatterns,
 }))
 

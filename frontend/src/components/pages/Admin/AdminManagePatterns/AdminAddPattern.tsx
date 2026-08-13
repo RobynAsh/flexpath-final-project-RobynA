@@ -1,4 +1,4 @@
-import { useAdminAddPattern } from '../../../../services/admin/useAdminAddPattern'
+import { useAdminAddPattern } from '../../../../services/patterns/admin/useAdminAddPattern'
 import { PatternForm } from '../../Patterns/PatternForm'
 
 export const AdminAddPattern = () => {

@@ -1,4 +1,4 @@
-import { useAddPattern } from '../../../../services/useAddPattern'
+import { useAddPattern } from '../../../../services/patterns/useAddPattern'
 import { PatternForm } from '../PatternForm'
 
 export const AddPattern = () => {

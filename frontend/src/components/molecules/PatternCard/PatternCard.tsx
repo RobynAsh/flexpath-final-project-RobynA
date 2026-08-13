@@ -1,4 +1,4 @@
-import type { PatternDetails } from '../../../services/types/patternTypes'
+import type { PatternDetails } from '../../../services/patterns/types/patternTypes'
 import { Chip } from '../../atoms/Chip/Chip'
 import { Link } from 'react-router-dom'
 import { Button } from '../../atoms/Button/Button'

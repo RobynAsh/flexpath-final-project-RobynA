@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { AddPattern } from './AddPattern'
 
-jest.mock('../../../../services/useAddPattern', () => ({
+jest.mock('../../../../services/patterns/useAddPattern', () => ({
   useAddPattern: () => ({ mutateAsync: jest.fn() }),
 }))
 

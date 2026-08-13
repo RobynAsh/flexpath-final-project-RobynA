@@ -4,7 +4,7 @@ import { AdminAddPattern } from './AdminAddPattern'
 
 const mockAddPattern = jest.fn(async () => undefined)
 
-jest.mock('../../../../services/admin/useAdminAddPattern', () => ({
+jest.mock('../../../../services/patterns/admin/useAdminAddPattern', () => ({
   useAdminAddPattern: () => ({ mutateAsync: mockAddPattern }),
 }))
 

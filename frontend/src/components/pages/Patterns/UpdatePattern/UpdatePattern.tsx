@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
-import { useGetPattern } from '../../../../services/useGetPattern'
-import type { AddPatternRequest } from '../../../../services/types/patternFormTypes'
-import { useUpdatePattern } from '../../../../services/useUpdatePattern'
+import { useGetPattern } from '../../../../services/patterns/useGetPattern'
+import type { AddPatternRequest } from '../../../../services/patterns/types/patternFormTypes'
+import { useUpdatePattern } from '../../../../services/patterns/useUpdatePattern'
 import { PatternForm } from '../PatternForm'
 
 export const UpdatePattern = () => {

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import type { AddPatternRequest } from '../../../services/types/patternFormTypes'
+import type { AddPatternRequest } from '../../../services/patterns/types/patternFormTypes'
 import { PatternForm } from './PatternForm'
 
 const validPattern: AddPatternRequest = {

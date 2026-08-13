@@ -7,8 +7,8 @@ import {
   type SortField,
   usePatternsFilterSort,
 } from '../../../../hooks/usePatternsFilterSort'
-import { useAdminGetAllPatterns } from '../../../../services/admin/useAdminGetAllPatterns'
-import { useAdminDeletePatterns } from '../../../../services/admin/useAdminDeletePatterns'
+import { useAdminGetAllPatterns } from '../../../../services/patterns/admin/useAdminGetAllPatterns'
+import { useAdminDeletePatterns } from '../../../../services/patterns/admin/useAdminDeletePatterns'
 import { Button } from '../../../atoms/Button/Button'
 import { DashBorder } from '../../../atoms/DashBorder/DashBorder'
 import { FilterForm } from '../../../form/FilterForm/FilterForm'
