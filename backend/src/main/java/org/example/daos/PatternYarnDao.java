@@ -71,16 +71,15 @@ public class PatternYarnDao extends JdbcDao {
      * @return PatternYarn
      */
     public PatternYarn createPatternYarn(PatternYarn patternYarn) {
-        String sql = "INSERT INTO pattern_yarns (pattern_id, suggested_yarn_id, description, weight, yardage, grams) VALUES (?, ?, ?, ?, ?, ?);";
+        String sql = "INSERT INTO pattern_yarns (pattern_id, description, weight, yardage, grams) VALUES (?, ?, ?, ?, ?);";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setInt(1, patternYarn.getPatternId());
-            statement.setObject(2, patternYarn.getSuggestedYarnId());
-            statement.setString(3, patternYarn.getDescription());
-            statement.setInt(4, patternYarn.getWeight());
-            statement.setInt(5, patternYarn.getYardage());
-            statement.setFloat(6, patternYarn.getGrams());
+            statement.setString(2, patternYarn.getDescription());
+            statement.setInt(3, patternYarn.getWeight());
+            statement.setInt(4, patternYarn.getYardage());
+            statement.setFloat(5, patternYarn.getGrams());
             return statement;
         }, keyHolder);
         return getPatternYarnById(getGeneratedId(keyHolder));
@@ -95,9 +94,8 @@ public class PatternYarnDao extends JdbcDao {
      */
     public PatternYarn updatePatternYarn(PatternYarn patternYarn) {
         int rowsAffected = jdbcTemplate.update(
-                "UPDATE pattern_yarns SET pattern_id = ?, suggested_yarn_id = ?, description = ?, weight = ?, yardage = ?, grams = ? WHERE pattern_yarn_id = ?;",
+                "UPDATE pattern_yarns SET pattern_id = ?, description = ?, weight = ?, yardage = ?, grams = ? WHERE pattern_yarn_id = ?;",
                 patternYarn.getPatternId(),
-                patternYarn.getSuggestedYarnId(),
                 patternYarn.getDescription(),
                 patternYarn.getWeight(),
                 patternYarn.getYardage(),
@@ -132,7 +130,6 @@ public class PatternYarnDao extends JdbcDao {
         return new PatternYarn(
                 resultSet.getInt("pattern_yarn_id"),
                 resultSet.getInt("pattern_id"),
-                resultSet.getInt("suggested_yarn_id"),
                 resultSet.getString("description"),
                 resultSet.getInt("weight"),
                 resultSet.getInt("yardage"),

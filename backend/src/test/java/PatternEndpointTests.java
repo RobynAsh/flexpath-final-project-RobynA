@@ -195,7 +195,7 @@ public class PatternEndpointTests extends WebStoreTest {
         request.put("imageUrl", "https://example.com/pattern.jpg");
         request.put("tags", new String[] {"cozy"});
         request.put("yarn", new PatternYarn[] {
-                new PatternYarn(0, 0, null, "Body", 4, 251, 142)
+                new PatternYarn(0, 0, "Body", 4, 251, 142)
         });
         request.put("tools", new PatternTool[] {
                 new PatternTool(0, 0, "Crochet hook", 5.5f)
@@ -439,7 +439,7 @@ public class PatternEndpointTests extends WebStoreTest {
         request.put("imageUrl", "https://example.com/updated.jpg");
         request.put("tags", new String[] {"updated-tag"});
         request.put("yarn", new PatternYarn[] {
-                new PatternYarn(0, 0, null, "Updated yarn", 4, 250, 100)
+                new PatternYarn(0, 0, "Updated yarn", 4, 250, 100)
         });
         request.put("tools", new PatternTool[] {
                 new PatternTool(0, 0, "Updated needles", 5.5f)

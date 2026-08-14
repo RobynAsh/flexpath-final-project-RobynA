@@ -15,11 +15,6 @@ public class PatternYarn {
     private int patternId;
 
     /**
-     * The unique identifier of the suggested yarn.
-     */
-    private Integer suggestedYarnId;
-
-    /**
      * The description of the yarn needed by the pattern.
      */
     private String description;
@@ -44,7 +39,6 @@ public class PatternYarn {
      *
      * @param patternYarnId The unique identifier of the pattern yarn.
      * @param patternId The unique identifier of the pattern.
-     * @param suggestedYarnId The unique identifier of the suggested yarn.
      * @param description The description of the yarn needed by the pattern.
      * @param weight The yarn weight needed by the pattern.
      * @param yardage The yardage needed by the pattern.
@@ -53,14 +47,12 @@ public class PatternYarn {
     public PatternYarn(
             int patternYarnId,
             int patternId,
-            Integer suggestedYarnId,
             String description,
             int weight,
             int yardage,
             float grams) {
         this.patternYarnId = patternYarnId;
         this.patternId = patternId;
-        this.suggestedYarnId = suggestedYarnId;
         this.description = description;
         this.weight = weight;
         this.yardage = yardage;
@@ -101,24 +93,6 @@ public class PatternYarn {
      */
     public void setPatternId(int patternId) {
         this.patternId = patternId;
-    }
-
-    /**
-     * Gets the unique identifier of the suggested yarn.
-     *
-     * @return The unique identifier of the suggested yarn.
-     */
-    public Integer getSuggestedYarnId() {
-        return suggestedYarnId;
-    }
-
-    /**
-     * Sets the unique identifier of the suggested yarn.
-     *
-     * @param suggestedYarnId The unique identifier of the suggested yarn.
-     */
-    public void setSuggestedYarnId(Integer suggestedYarnId) {
-        this.suggestedYarnId = suggestedYarnId;
     }
 
     /**

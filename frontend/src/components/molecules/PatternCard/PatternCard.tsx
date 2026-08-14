@@ -69,6 +69,7 @@ export const PatternCard = ({
           <Link to={editPath} aria-label={`Edit ${pattern.name}`}>
             <Button variant="tertiary">
               <FontAwesomeIcon icon={faPen} />
+              <span className="sr-only">Edit {pattern.name}</span>
             </Button>
           </Link>
         </div>

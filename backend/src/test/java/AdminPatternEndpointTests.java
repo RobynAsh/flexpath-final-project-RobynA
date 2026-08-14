@@ -225,8 +225,8 @@ public class AdminPatternEndpointTests extends WebStoreTest {
     @DisplayName("POST /api/admin/patterns should create yarn requirements for the pattern")
     public void createPatternShouldCreateYarnRequirements() {
         var yarn = new PatternYarn[] {
-                new PatternYarn(0, 999, null, "Body", 4, 251, 142),
-                new PatternYarn(0, 999, null, "Trim", 3, 75, 50)
+                new PatternYarn(0, 999, "Body", 4, 251, 142),
+                new PatternYarn(0, 999, "Trim", 3, 75, 50)
         };
         var request = new CreatePatternDto(
                 "test-admin",
@@ -404,7 +404,7 @@ public class AdminPatternEndpointTests extends WebStoreTest {
                 null,
                 new String[] {"old-tag"},
                 new PatternYarn[] {
-                        new PatternYarn(0, 0, null, "Old yarn", 3, 100, 50)
+                        new PatternYarn(0, 0, "Old yarn", 3, 100, 50)
                 },
                 new PatternTool[] {
                         new PatternTool(0, 0, "Old hook", 4.0f)
@@ -432,7 +432,7 @@ public class AdminPatternEndpointTests extends WebStoreTest {
                 "https://example.com/updated.jpg",
                 new String[] {"new-tag"},
                 new PatternYarn[] {
-                        new PatternYarn(0, 0, null, "New yarn", 4, 250, 100)
+                        new PatternYarn(0, 0, "New yarn", 4, 250, 100)
                 },
                 new PatternTool[] {
                         new PatternTool(0, 0, "New needles", 5.5f)

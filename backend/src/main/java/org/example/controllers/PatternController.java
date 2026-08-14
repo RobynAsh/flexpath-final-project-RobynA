@@ -170,7 +170,6 @@ public class PatternController {
                 patternYarnDao.createPatternYarn(new PatternYarn(
                         0,
                         pattern.getPatternId(),
-                        yarn.getSuggestedYarnId(),
                         yarn.getDescription(),
                         yarn.getWeight(),
                         yarn.getYardage(),
@@ -259,7 +258,6 @@ public class PatternController {
                 patternYarnDao.createPatternYarn(new PatternYarn(
                         0,
                         patternId,
-                        yarn.getSuggestedYarnId(),
                         yarn.getDescription(),
                         yarn.getWeight(),
                         yarn.getYardage(),
