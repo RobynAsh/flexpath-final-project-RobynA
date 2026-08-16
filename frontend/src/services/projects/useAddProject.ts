@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useProfile } from '../../providers/ProfileContext'
 import type { AddProjectRequest } from './types/projectFormTypes'
-
-export const projectsQueryKey = ['projects'] as const
+import { projectsQueryKey } from './useGetProjects'
 
 const addProject = async (
   project: AddProjectRequest,

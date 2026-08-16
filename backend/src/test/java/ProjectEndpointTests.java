@@ -22,6 +22,49 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Import(FinalTestConfiguration.class)
 public class ProjectEndpointTests extends WebStoreTest {
     /**
+     * Tests that listing projects requires authentication.
+     */
+    @Test
+    @DisplayName("GET /api/projects should return a 401 if not authenticated")
+    public void listProjectsShouldFailIfNotAuthenticated() {
+        var result = restTemplate.getForEntity(
+                getBaseUrl() + "/api/projects",
+                String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+    }
+
+    /**
+     * Tests that listing projects only returns projects owned by the logged-in user.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/projects should only return the authenticated user's projects")
+    public void listProjectsShouldOnlyReturnOwnedProjects() throws Exception {
+        createUsersAndPatterns();
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
+                + "SELECT 'project-user', pattern_id, 'Owned Project', 'In Progress' "
+                + "FROM flexpath_final.patterns WHERE name = 'Owned Pattern';");
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
+                + "SELECT 'other-user', pattern_id, 'Other Project', 'Completed' "
+                + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/projects",
+                HttpMethod.GET,
+                GetAuthEntity("project-user", "password"),
+                Project[].class);
+        var projects = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(projects);
+        assertEquals(1, projects.length);
+        assertEquals("Owned Project", projects[0].getName());
+        assertEquals("project-user", projects[0].getUsername());
+    }
+
+    /**
      * Tests that creating a project requires authentication.
      */
     @Test

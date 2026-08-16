@@ -6,6 +6,17 @@ import {
 } from '../../../providers/ProfileContext'
 import { MemoryRouter } from 'react-router-dom'
 
+jest.mock('../../../services/projects/useGetProjects', () => ({
+  useGetProjects: () => ({
+    data: [
+      { projectId: 1, status: 'Not Started' },
+      { projectId: 2, status: 'In Progress' },
+      { projectId: 3, status: 'In Progress' },
+      { projectId: 4, status: 'Completed' },
+    ],
+  }),
+}))
+
 const setJwtToken = jest.fn()
 export const profileValue: ProfileContextValue = {
   profileStatus: 'authenticated',
@@ -26,5 +37,8 @@ describe('Home', () => {
       </MemoryRouter>,
     )
     expect(screen.getByText('Welcome back,')).toBeInTheDocument()
+    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getAllByText('1')).toHaveLength(2)
   })
 })

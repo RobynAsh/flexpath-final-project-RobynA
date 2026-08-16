@@ -9,12 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.List;
 
 /**
  * Controller for projects owned by the currently logged-in user.
@@ -34,6 +36,17 @@ public class ProjectController {
      */
     @Autowired
     private PatternDao patternDao;
+
+    /**
+     * Gets projects owned by the currently logged-in user.
+     *
+     * @param principal The currently logged-in user.
+     * @return The user's projects.
+     */
+    @GetMapping
+    public List<Project> list(Principal principal) {
+        return projectDao.getProjectsByUsername(principal.getName());
+    }
 
     /**
      * Creates a project owned by the currently logged-in user.
