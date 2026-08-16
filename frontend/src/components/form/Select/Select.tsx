@@ -8,13 +8,14 @@ export type SelectOption = {
 export interface SelectProps extends ComponentPropsWithoutRef<'select'> {
   id: string
   label: string
+  error?: string
   options: SelectOption[]
   containerClassName?: string
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   function Select(
-    { id, label, options, containerClassName = '', ...selectProps },
+    { id, label, error, options, containerClassName = '', ...selectProps },
     ref,
   ) {
     return (
@@ -25,7 +26,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           id={id}
-          className="border-thread-200 rounded-lg border-2 bg-transparent px-3 py-2 text-lg outline-none focus:border-olive-400 sm:text-xl"
+          className={`${error ? 'border-rose-600 focus:border-rose-400' : 'border-thread-200 focus:border-olive-400'} rounded-lg border-2 bg-transparent px-3 py-2 text-lg outline-none sm:text-xl`}
           {...selectProps}
         >
           {options.map((option) => (
@@ -34,6 +35,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
+        {error && <p className="text-left text-rose-600">{error}</p>}
       </div>
     )
   },

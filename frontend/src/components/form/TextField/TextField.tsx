@@ -37,7 +37,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         </label>
         <div className="flex flex-col gap-1">
           <div
-            className={`${error ? 'border-rose-600' : 'border-thread-200'} flex items-center gap-1 rounded-lg border-2 px-1 py-2 sm:gap-2 sm:p-2`}
+            className={`${error ? 'border-rose-600 focus-within:border-rose-400' : 'border-thread-200 focus-within :border-olive-400'} flex items-center gap-1 rounded-lg border-2 px-1 py-2 sm:gap-2 sm:p-2`}
           >
             {leftIcon && (
               <FontAwesomeIcon
