@@ -13,8 +13,8 @@ export const Chip = ({ label, onRemove }: ChipProps) => {
       {onRemove && (
         <button
           type="button"
-          onClick={onRemove}
           aria-label={`Remove ${label.charAt(0).toUpperCase()}${label.slice(1)}`}
+          onClick={onRemove}
           className="cursor-pointer text-olive-300 hover:text-olive-600"
         >
           <FontAwesomeIcon icon={faXmark} />

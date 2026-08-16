@@ -1,3 +1,10 @@
+import type {
+  Pattern,
+  PatternMaterial,
+  PatternTool,
+  PatternYarn,
+} from '../../patterns/types/patternTypes'
+
 export type Project = {
   projectId: number
   username: string
@@ -12,4 +19,12 @@ export type Project = {
   dateNeededBy: string | null
   createdAt: string
   updatedAt: string
+}
+
+export type ProjectDetails = {
+  project: Project
+  pattern: Pattern
+  yarn: PatternYarn[]
+  tools: PatternTool[]
+  materials: PatternMaterial[]
 }

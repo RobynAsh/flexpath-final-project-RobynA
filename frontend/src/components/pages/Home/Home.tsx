@@ -43,7 +43,7 @@ export const Home = () => {
             className="grow"
           >
             <h3 className="border-thread-300 mb-2 border-b pb-1">Quick Add</h3>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2">
               <Link to="/patterns/add">
                 <Button variant="primary">
                   <FontAwesomeIcon icon={faPlus} />
@@ -54,18 +54,6 @@ export const Home = () => {
                 <Button variant="primary">
                   <FontAwesomeIcon icon={faPlus} />
                   Add Project
-                </Button>
-              </Link>
-              <Link to="/stash/yarn/add">
-                <Button variant="primary">
-                  <FontAwesomeIcon icon={faPlus} />
-                  Add Yarn
-                </Button>
-              </Link>
-              <Link to="/stash/tool/add">
-                <Button variant="primary">
-                  <FontAwesomeIcon icon={faPlus} />
-                  Add Tool
                 </Button>
               </Link>
             </div>
