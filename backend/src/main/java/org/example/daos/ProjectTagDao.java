@@ -70,6 +70,20 @@ public class ProjectTagDao extends JdbcDao {
     }
 
     /**
+     * Deletes a tag assignment from a project.
+     *
+     * @param projectId The project id.
+     * @param tagId The tag id.
+     * @return The number of rows affected.
+     */
+    public int deleteProjectTag(int projectId, int tagId) {
+        return jdbcTemplate.update(
+                "DELETE FROM project_tags WHERE project_id = ? AND tag_id = ?;",
+                projectId,
+                tagId);
+    }
+
+    /**
      * Maps a row in the result set to a project tag.
      *
      * @param resultSet The result set.

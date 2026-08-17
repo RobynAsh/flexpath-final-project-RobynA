@@ -36,10 +36,10 @@ export const Button = ({
   }, [variant])
 
   const spanClasses = useMemo(() => {
-    let classes = tw`flex items-center justify-center gap-2 p-1 rounded-md `
+    let classes = tw`flex items-center justify-center gap-2 rounded-md `
     switch (variant) {
       case 'primary':
-        classes += tw`border border-dashed border-olive-300`
+        classes += tw`border border-dashed border-olive-300 p-1.5`
         break
       case 'secondary':
         classes += tw`p-1`
@@ -60,11 +60,7 @@ export const Button = ({
       onClick={onClick}
       disabled={disabled}
     >
-      <span
-        className={`${spanClasses} ${variant === 'primary' ? '' : 'p-1'} ${className}`}
-      >
-        {children}
-      </span>
+      <span className={`${spanClasses} ${className}`}>{children}</span>
     </button>
   )
 }

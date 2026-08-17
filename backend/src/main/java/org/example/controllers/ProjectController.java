@@ -22,11 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -162,6 +164,57 @@ public class ProjectController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProject);
+    }
+
+    /**
+     * Updates a project owned by the currently logged-in user and replaces its tags.
+     *
+     * @param principal The currently logged-in user.
+     * @param projectId The project id.
+     * @param request The updated project.
+     * @return The updated project, or a 404 if the project or selected pattern is not owned by the user.
+     */
+    @PutMapping("/{projectId}")
+    @Transactional
+    public ResponseEntity<Project> update(
+            Principal principal,
+            @PathVariable int projectId,
+            @RequestBody CreateProjectDto request) {
+        Project existingProject = projectDao.getProjectById(projectId);
+
+        if (existingProject == null || !existingProject.getUsername().equals(principal.getName())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Pattern pattern = patternDao.getPatternById(request.patternId());
+
+        if (pattern == null || !pattern.getUsername().equals(principal.getName())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Project requestedProject = request.toProject();
+        requestedProject.setProjectId(projectId);
+        requestedProject.setUsername(principal.getName());
+        requestedProject.setUpdatedAt(LocalDateTime.now());
+        Project updatedProject = projectDao.updateProject(requestedProject);
+
+        projectTagDao.getProjectTagsByProjectId(projectId)
+                .forEach(projectTag ->
+                        projectTagDao.deleteProjectTag(projectId, projectTag.getTagId()));
+
+        if (request.tags() != null) {
+            for (String tagName : new LinkedHashSet<>(Arrays.asList(request.tags()))) {
+                Tag tag = tagDao.getTagByUsernameAndName(principal.getName(), tagName);
+
+                if (tag == null) {
+                    tag = tagDao.createTag(new Tag(0, principal.getName(), tagName));
+                }
+
+                projectTagDao.createProjectTag(new ProjectTag(projectId, tag.getTagId()));
+            }
+        }
+
+        return ResponseEntity.ok(updatedProject);
     }
 
     /**

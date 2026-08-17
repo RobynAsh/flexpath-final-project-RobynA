@@ -247,6 +247,103 @@ public class ProjectEndpointTests extends WebStoreTest {
     }
 
     /**
+     * Tests that updating a project replaces its values and tag assignments.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("PUT /api/projects/{projectId} should update an owned project and replace its tags")
+    public void updateProjectShouldReplaceValuesAndTags() throws Exception {
+        createUsersAndPatterns();
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
+                + "SELECT 'project-user', pattern_id, 'Original Project', 'Not Started' "
+                + "FROM flexpath_final.patterns WHERE name = 'Owned Pattern';");
+        executeSql("INSERT INTO flexpath_final.tags (username, name) VALUES ('project-user', 'old-tag');");
+        executeSql("INSERT INTO flexpath_final.project_tags (project_id, tag_id) "
+                + "SELECT p.project_id, t.tag_id FROM flexpath_final.projects p "
+                + "JOIN flexpath_final.tags t ON t.username = p.username "
+                + "WHERE p.name = 'Original Project' AND t.name = 'old-tag';");
+        Integer projectId = getJdbcTemplate().queryForObject(
+                "SELECT project_id FROM flexpath_final.projects WHERE name = 'Original Project';",
+                Integer.class);
+        Integer patternId = getJdbcTemplate().queryForObject(
+                "SELECT pattern_id FROM flexpath_final.patterns WHERE name = 'Owned Pattern';",
+                Integer.class);
+
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("patternId", patternId);
+        request.put("name", "Updated Project");
+        request.put("status", "In Progress");
+        request.put("isPublic", true);
+        request.put("care", "Hand wash.");
+        request.put("gauge", "20 stitches per 4 inches");
+        request.put("tags", new String[] {"new-tag", "gift"});
+        request.put("dateStarted", "2026-08-10");
+        request.put("dateFinished", null);
+        request.put("dateNeededBy", "2026-09-15");
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/projects/" + projectId,
+                HttpMethod.PUT,
+                GetAuthEntity("project-user", "password", request),
+                Project.class);
+        var updatedProject = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(updatedProject);
+        assertEquals("Updated Project", updatedProject.getName());
+        assertEquals("In Progress", updatedProject.getStatus());
+        assertEquals(true, updatedProject.isPublic());
+        assertEquals(2, getJdbcTemplate().queryForObject(
+                "SELECT COUNT(*) FROM flexpath_final.project_tags WHERE project_id = ?;",
+                Integer.class,
+                projectId));
+        assertEquals(0, getJdbcTemplate().queryForObject(
+                "SELECT COUNT(*) FROM flexpath_final.project_tags pt "
+                        + "JOIN flexpath_final.tags t ON t.tag_id = pt.tag_id "
+                        + "WHERE pt.project_id = ? AND t.name = 'old-tag';",
+                Integer.class,
+                projectId));
+    }
+
+    /**
+     * Tests that a user cannot update another user's project.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("PUT /api/projects/{projectId} should hide projects owned by another user")
+    public void updateProjectShouldNotUpdateAnotherUsersProject() throws Exception {
+        createUsersAndPatterns();
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
+                + "SELECT 'other-user', pattern_id, 'Other Project', 'Completed' "
+                + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
+        Integer projectId = getJdbcTemplate().queryForObject(
+                "SELECT project_id FROM flexpath_final.projects WHERE name = 'Other Project';",
+                Integer.class);
+        Integer ownedPatternId = getJdbcTemplate().queryForObject(
+                "SELECT pattern_id FROM flexpath_final.patterns WHERE name = 'Owned Pattern';",
+                Integer.class);
+        var request = Map.of(
+                "patternId", ownedPatternId,
+                "name", "Stolen Project",
+                "status", "In Progress",
+                "isPublic", false);
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/projects/" + projectId,
+                HttpMethod.PUT,
+                GetAuthEntity("project-user", "password", request),
+                String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+        assertEquals("Other Project", getJdbcTemplate().queryForObject(
+                "SELECT name FROM flexpath_final.projects WHERE project_id = ?;",
+                String.class,
+                projectId));
+    }
+
+    /**
      * Creates users and one pattern for each user.
      *
      * @throws Exception If test data cannot be created.
