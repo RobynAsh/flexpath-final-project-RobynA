@@ -13,13 +13,14 @@ export const Home = () => {
   const projectCounts = {
     total: projects?.length ?? 0,
     notStarted:
-      projects?.filter((project) => project.status === 'Not Started').length ??
-      0,
+      projects?.filter(({ project }) => project.status === 'Not Started')
+        .length ?? 0,
     inProgress:
-      projects?.filter((project) => project.status === 'In Progress').length ??
-      0,
+      projects?.filter(({ project }) => project.status === 'In Progress')
+        .length ?? 0,
     completed:
-      projects?.filter((project) => project.status === 'Completed').length ?? 0,
+      projects?.filter(({ project }) => project.status === 'Completed')
+        .length ?? 0,
   }
 
   return (

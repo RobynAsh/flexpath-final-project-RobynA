@@ -5,6 +5,7 @@ import org.example.models.PatternMaterial;
 import org.example.models.PatternTool;
 import org.example.models.PatternYarn;
 import org.example.models.Project;
+import org.example.models.Tag;
 
 import java.util.List;
 
@@ -13,6 +14,7 @@ import java.util.List;
  */
 public record ProjectDto(
         Project project,
+        List<Tag> tags,
         Pattern pattern,
         List<PatternYarn> yarn,
         List<PatternTool> tools,

@@ -8,6 +8,7 @@ import type { PatternDetails } from '../../../services/patterns/types/patternTyp
 import type { AddProjectRequest } from '../../../services/projects/types/projectFormTypes'
 import { Button } from '../../atoms/Button/Button'
 import { Checkbox } from '../../form/Checkbox/Checkbox'
+import { MultiSelect } from '../../form/MultiSelect/MultiSelect'
 import { Select } from '../../form/Select/Select'
 import { TextArea } from '../../form/TextArea/TextArea'
 import { TextField } from '../../form/TextField/TextField'
@@ -26,6 +27,7 @@ const emptyProject: AddProjectRequest = {
   isPublic: false,
   care: '',
   gauge: '',
+  tags: [],
   dateStarted: '',
   dateFinished: '',
   dateNeededBy: '',
@@ -132,6 +134,20 @@ export const ProjectForm = ({
           maxLength={255}
         />
       </div>
+
+      <Controller
+        control={control}
+        name="tags"
+        render={({ field }) => (
+          <MultiSelect
+            id="tags"
+            label="Tags"
+            value={field.value}
+            onChange={field.onChange}
+            placeholder="Type a tag and press Enter"
+          />
+        )}
+      />
 
       <div className="grid gap-4 md:grid-cols-3">
         <TextField

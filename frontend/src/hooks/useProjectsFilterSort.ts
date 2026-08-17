@@ -1,7 +1,10 @@
 import { useMemo } from 'react'
 import type { SelectOption } from '../components/form/Select/Select'
 import type { SortDirection } from '../components/form/SortForm/SortForm'
-import type { Project } from '../services/projects/types/projectTypes'
+import type {
+  Project,
+  ProjectSummary,
+} from '../services/projects/types/projectTypes'
 
 export type ProjectSortField = 'name' | 'createdAt' | 'updatedAt'
 export type ProjectFilterField = Exclude<
@@ -44,7 +47,7 @@ export const useProjectsFilterSort = ({
   sortField,
   sortDirection,
 }: {
-  projects?: Project[]
+  projects?: ProjectSummary[]
   filterField: ProjectFilterField
   filterText: string
   sortField: ProjectSortField
@@ -57,7 +60,7 @@ export const useProjectsFilterSort = ({
 
     const normalizedFilter = filterText.trim().toLocaleLowerCase()
     const filteredProjects = normalizedFilter
-      ? projects.filter((project) => {
+      ? projects.filter(({ project }) => {
           const fieldValue = project[filterField]
           const searchableValue =
             fieldValue && dateFields.includes(filterField)
@@ -73,8 +76,8 @@ export const useProjectsFilterSort = ({
       : projects
 
     return [...filteredProjects].sort((first, second) => {
-      const firstValue = first[sortField]
-      const secondValue = second[sortField]
+      const firstValue = first.project[sortField]
+      const secondValue = second.project[sortField]
       const comparison =
         sortField === 'name'
           ? firstValue.localeCompare(secondValue, undefined, {

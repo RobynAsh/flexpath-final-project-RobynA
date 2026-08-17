@@ -9,10 +9,10 @@ import { MemoryRouter } from 'react-router-dom'
 jest.mock('../../../services/projects/useGetProjects', () => ({
   useGetProjects: () => ({
     data: [
-      { projectId: 1, status: 'Not Started' },
-      { projectId: 2, status: 'In Progress' },
-      { projectId: 3, status: 'In Progress' },
-      { projectId: 4, status: 'Completed' },
+      { project: { projectId: 1, status: 'Not Started' }, tags: [] },
+      { project: { projectId: 2, status: 'In Progress' }, tags: [] },
+      { project: { projectId: 3, status: 'In Progress' }, tags: [] },
+      { project: { projectId: 4, status: 'Completed' }, tags: [] },
     ],
   }),
 }))

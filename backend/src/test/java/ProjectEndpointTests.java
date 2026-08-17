@@ -1,5 +1,6 @@
 import org.example.SpringBootApplication;
 import org.example.dtos.ProjectDto;
+import org.example.dtos.ProjectSummaryDto;
 import org.example.models.Project;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,19 +51,25 @@ public class ProjectEndpointTests extends WebStoreTest {
         executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
                 + "SELECT 'other-user', pattern_id, 'Other Project', 'Completed' "
                 + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
+        executeSql("INSERT INTO flexpath_final.tags (username, name) VALUES ('project-user', 'gift');");
+        executeSql("INSERT INTO flexpath_final.project_tags (project_id, tag_id) "
+                + "SELECT p.project_id, t.tag_id FROM flexpath_final.projects p "
+                + "JOIN flexpath_final.tags t ON t.username = p.username "
+                + "WHERE p.name = 'Owned Project' AND t.name = 'gift';");
 
         var result = restTemplate.exchange(
                 getBaseUrl() + "/api/projects",
                 HttpMethod.GET,
                 GetAuthEntity("project-user", "password"),
-                Project[].class);
+                ProjectSummaryDto[].class);
         var projects = result.getBody();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(projects);
         assertEquals(1, projects.length);
-        assertEquals("Owned Project", projects[0].getName());
-        assertEquals("project-user", projects[0].getUsername());
+        assertEquals("Owned Project", projects[0].project().getName());
+        assertEquals("project-user", projects[0].project().getUsername());
+        assertEquals("gift", projects[0].tags().get(0).getName());
     }
 
     /**
@@ -82,6 +89,11 @@ public class ProjectEndpointTests extends WebStoreTest {
         executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
                 + "SELECT 'project-user', pattern_id, 'Owned Project', 'In Progress' "
                 + "FROM flexpath_final.patterns WHERE name = 'Owned Pattern';");
+        executeSql("INSERT INTO flexpath_final.tags (username, name) VALUES ('project-user', 'cardigan');");
+        executeSql("INSERT INTO flexpath_final.project_tags (project_id, tag_id) "
+                + "SELECT p.project_id, t.tag_id FROM flexpath_final.projects p "
+                + "JOIN flexpath_final.tags t ON t.username = p.username "
+                + "WHERE p.name = 'Owned Project' AND t.name = 'cardigan';");
         executeSql("INSERT INTO flexpath_final.pattern_yarns "
                 + "(pattern_id, description, weight, yardage, grams) "
                 + "SELECT pattern_id, 'Worsted wool', 4, 800, 400 "
@@ -107,6 +119,7 @@ public class ProjectEndpointTests extends WebStoreTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(details);
         assertEquals("Owned Project", details.project().getName());
+        assertEquals("cardigan", details.tags().get(0).getName());
         assertEquals("Owned Pattern", details.pattern().getName());
         assertEquals("Test Designer", details.pattern().getDesigner());
         assertEquals("Worsted wool", details.yarn().get(0).getDescription());
@@ -173,6 +186,7 @@ public class ProjectEndpointTests extends WebStoreTest {
         request.put("isPublic", true);
         request.put("care", "Hand wash and lay flat to dry.");
         request.put("gauge", "18 stitches per 4 inches");
+        request.put("tags", new String[] {"gift", "cardigan"});
         request.put("dateStarted", "2026-08-01");
         request.put("dateFinished", null);
         request.put("dateNeededBy", "2026-09-01");
@@ -196,6 +210,10 @@ public class ProjectEndpointTests extends WebStoreTest {
                 Integer.class,
                 "project-user",
                 "Birthday Cardigan"));
+        assertEquals(2, getJdbcTemplate().queryForObject(
+                "SELECT COUNT(*) FROM flexpath_final.project_tags WHERE project_id = ?;",
+                Integer.class,
+                createdProject.getProjectId()));
     }
 
     /**

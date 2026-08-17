@@ -2,6 +2,7 @@ import type {
   Pattern,
   PatternMaterial,
   PatternTool,
+  PatternTag,
   PatternYarn,
 } from '../../patterns/types/patternTypes'
 
@@ -23,8 +24,14 @@ export type Project = {
 
 export type ProjectDetails = {
   project: Project
+  tags: PatternTag[]
   pattern: Pattern
   yarn: PatternYarn[]
   tools: PatternTool[]
   materials: PatternMaterial[]
+}
+
+export type ProjectSummary = {
+  project: Project
+  tags: PatternTag[]
 }

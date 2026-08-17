@@ -14,6 +14,7 @@ public record CreateProjectDto(
         boolean isPublic,
         String care,
         String gauge,
+        String[] tags,
         LocalDate dateStarted,
         LocalDate dateFinished,
         LocalDate dateNeededBy) {

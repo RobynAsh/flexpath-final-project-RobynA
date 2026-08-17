@@ -98,8 +98,8 @@ export const Projects = () => {
 
       {!isPending && !isError && visibleProjects.length > 0 && (
         <div className="flex flex-col gap-4">
-          {visibleProjects.map((project) => (
-            <ProjectCard project={project} key={project.projectId} />
+          {visibleProjects.map((details) => (
+            <ProjectCard details={details} key={details.project.projectId} />
           ))}
         </div>
       )}

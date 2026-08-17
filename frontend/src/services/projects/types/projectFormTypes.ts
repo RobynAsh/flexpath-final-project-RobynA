@@ -5,6 +5,7 @@ export type AddProjectRequest = {
   isPublic: boolean
   care: string
   gauge: string
+  tags: string[]
   dateStarted: string
   dateFinished: string
   dateNeededBy: string

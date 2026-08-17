@@ -34,6 +34,7 @@ const validProject: AddProjectRequest = {
   isPublic: true,
   care: 'Hand wash and lay flat to dry.',
   gauge: '18 stitches per 4 inches',
+  tags: ['gift', 'cardigan'],
   dateStarted: '2026-08-01',
   dateFinished: '',
   dateNeededBy: '2026-09-01',

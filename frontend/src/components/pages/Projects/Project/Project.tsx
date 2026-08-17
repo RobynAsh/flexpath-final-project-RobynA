@@ -32,7 +32,7 @@ export const Project = () => {
     )
   }
 
-  const { project, pattern, yarn, tools, materials } = details
+  const { project, tags, pattern, yarn, tools, materials } = details
 
   return (
     <div className="flex w-full max-w-5xl flex-col gap-6 md:self-center">
@@ -56,6 +56,17 @@ export const Project = () => {
       <div className="bg-surface border-border shadow-card grid gap-5 rounded-xl border p-5 md:grid-cols-2">
         <div className="space-y-3">
           <h2>Project Information</h2>
+          {tags.length > 0 ? (
+            <ul className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <li key={tag.tagId}>
+                  <Chip label={tag.name} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted">No tags</p>
+          )}
           <div className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2">
             <p className="font-bold">Gauge</p>
             <p>{displayValue(project.gauge)}</p>
