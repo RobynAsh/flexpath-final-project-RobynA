@@ -1,9 +1,12 @@
-import { faPen } from '@fortawesome/free-solid-svg-icons'
+import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Link, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useDeleteProject } from '../../../../services/projects/useDeleteProject'
 import { useGetProject } from '../../../../services/projects/useGetProject'
 import { Button } from '../../../atoms/Button/Button'
 import { Chip } from '../../../atoms/Chip/Chip'
+import { Modal } from '../../../molecules/Modal/Modal'
 
 const displayValue = (value: string | null) => value || 'Not provided'
 
@@ -13,9 +16,20 @@ const formatDate = (value: string | null) =>
 const formatDateTime = (value: string) => new Date(value).toLocaleString()
 
 export const Project = () => {
+  const navigate = useNavigate()
   const { projectId: projectIdParam } = useParams()
   const projectId = Number(projectIdParam)
   const { data: details, isPending, isError } = useGetProject(projectId)
+
+  const deleteProject = useDeleteProject()
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  const confirmDelete = () => {
+    deleteProject.mutate(projectId, {
+      onSuccess: () => navigate('/projects'),
+    })
+  }
 
   if (isPending) {
     return <p role="status">Loading project...</p>
@@ -45,12 +59,25 @@ export const Project = () => {
           </div>
         </div>
 
-        <Link to={`/projects/${project.projectId}/update`}>
-          <Button variant="tertiary">
-            <FontAwesomeIcon icon={faPen} />
-            Edit Project
-          </Button>
-        </Link>
+        <div className="flex flex-col gap-2 sm:flex-row md:shrink-0">
+          <div>
+            <Button
+              variant="secondary"
+              onClick={() => setIsDeleteModalOpen(true)}
+            >
+              <FontAwesomeIcon icon={faTrash} />
+              Delete Project
+            </Button>
+          </div>
+          <div>
+            <Link to={`/projects/${project.projectId}/update`}>
+              <Button variant="tertiary">
+                <FontAwesomeIcon icon={faPen} />
+                Edit Project
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
 
       <div className="bg-surface border-border shadow-card grid gap-5 rounded-xl border p-5 md:grid-cols-2">
@@ -216,6 +243,34 @@ export const Project = () => {
           <p className="text-muted">No material requirements</p>
         )}
       </div>
+
+      {isDeleteModalOpen && (
+        <Modal
+          headerText="Delete Project?"
+          closeModal={() => setIsDeleteModalOpen(false)}
+          closeDisabled={deleteProject.isPending}
+          firstButton={{
+            label: 'Cancel',
+            onClick: () => setIsDeleteModalOpen(false),
+            disabled: deleteProject.isPending,
+          }}
+          secondButton={{
+            label: deleteProject.isPending ? 'Deleting...' : 'Delete Project',
+            onClick: confirmDelete,
+            disabled: deleteProject.isPending,
+          }}
+        >
+          <p className="my-4">
+            Are you sure you want to delete {project.name}?
+          </p>
+
+          {deleteProject.isError && (
+            <p role="alert" className="mb-4 text-rose-500">
+              Unable to delete the project. Please try again.
+            </p>
+          )}
+        </Modal>
+      )}
     </div>
   )
 }

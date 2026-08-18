@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -215,6 +216,26 @@ public class ProjectController {
         }
 
         return ResponseEntity.ok(updatedProject);
+    }
+
+    /**
+     * Deletes a project owned by the currently logged-in user.
+     *
+     * @param principal The currently logged-in user.
+     * @param projectId The project id.
+     * @return A 204 response, or a 404 if the project is not owned by the user.
+     */
+    @DeleteMapping("/{projectId}")
+    @Transactional
+    public ResponseEntity<Void> delete(Principal principal, @PathVariable int projectId) {
+        Project project = projectDao.getProjectById(projectId);
+
+        if (project == null || !project.getUsername().equals(principal.getName())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        projectDao.deleteProject(projectId);
+        return ResponseEntity.noContent().build();
     }
 
     /**
