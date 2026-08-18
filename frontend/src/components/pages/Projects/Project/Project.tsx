@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useDeleteProject } from '../../../../services/projects/useDeleteProject'
 import { useGetProject } from '../../../../services/projects/useGetProject'
+import { useAddMilestone } from '../../../../services/milestones/useAddMilestone'
 import { Button } from '../../../atoms/Button/Button'
 import { Chip } from '../../../atoms/Chip/Chip'
 import { Modal } from '../../../molecules/Modal/Modal'
+import { MilestoneForm } from './MilestoneForm'
 
 const displayValue = (value: string | null) => value || 'Not provided'
 
@@ -22,6 +24,7 @@ export const Project = () => {
   const { data: details, isPending, isError } = useGetProject(projectId)
 
   const deleteProject = useDeleteProject()
+  const addMilestone = useAddMilestone(projectId)
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
@@ -242,6 +245,18 @@ export const Project = () => {
         ) : (
           <p className="text-muted">No material requirements</p>
         )}
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="border-thread-200 border-b-2 border-dashed pb-2">
+            Milestones
+          </h2>
+          <p className="text-muted mt-2">
+            Record a note and optionally track your current row or repeat.
+          </p>
+        </div>
+        <MilestoneForm onSubmit={addMilestone.mutateAsync} />
       </div>
 
       {isDeleteModalOpen && (
