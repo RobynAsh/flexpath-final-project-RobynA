@@ -105,6 +105,14 @@ public class ProjectEndpointTests extends WebStoreTest {
                 + "(pattern_id, name, description, quantity) "
                 + "SELECT pattern_id, 'Buttons', 'Wooden buttons', 6 "
                 + "FROM flexpath_final.patterns WHERE name = 'Owned Pattern';");
+        executeSql("INSERT INTO flexpath_final.milestones "
+                + "(project_id, note, row_count, repeat_count, created_at) "
+                + "SELECT project_id, 'Earlier milestone', 10, 1, '2026-01-01 10:00:00' "
+                + "FROM flexpath_final.projects WHERE name = 'Owned Project';");
+        executeSql("INSERT INTO flexpath_final.milestones "
+                + "(project_id, note, row_count, repeat_count, created_at) "
+                + "SELECT project_id, 'Latest milestone', 20, 2, '2026-02-01 10:00:00' "
+                + "FROM flexpath_final.projects WHERE name = 'Owned Project';");
         Integer projectId = getJdbcTemplate().queryForObject(
                 "SELECT project_id FROM flexpath_final.projects WHERE name = 'Owned Project';",
                 Integer.class);
@@ -125,6 +133,9 @@ public class ProjectEndpointTests extends WebStoreTest {
         assertEquals("Worsted wool", details.yarn().get(0).getDescription());
         assertEquals("Needles", details.tools().get(0).getToolType());
         assertEquals("Buttons", details.materials().get(0).getName());
+        assertEquals(2, details.milestones().size());
+        assertEquals("Latest milestone", details.milestones().get(0).getNote());
+        assertEquals("Earlier milestone", details.milestones().get(1).getNote());
     }
 
     /**

@@ -45,7 +45,10 @@ public class MilestoneDao extends JdbcDao {
      * @return List of Milestone
      */
     public List<Milestone> getMilestonesByProjectId(int projectId) {
-        return jdbcTemplate.query("SELECT * FROM milestones WHERE project_id = ? ORDER BY milestone_id;", this::mapToMilestone, projectId);
+        return jdbcTemplate.query(
+                "SELECT * FROM milestones WHERE project_id = ? ORDER BY created_at DESC, milestone_id DESC;",
+                this::mapToMilestone,
+                projectId);
     }
 
     /**

@@ -49,7 +49,7 @@ export const Project = () => {
     )
   }
 
-  const { project, tags, pattern, yarn, tools, materials } = details
+  const { project, tags, pattern, yarn, tools, materials, milestones } = details
 
   return (
     <div className="flex w-full max-w-5xl flex-col gap-6 md:self-center">
@@ -257,6 +257,35 @@ export const Project = () => {
           </p>
         </div>
         <MilestoneForm onSubmit={addMilestone.mutateAsync} />
+        {milestones.length > 0 ? (
+          <ul className="grid gap-3">
+            {milestones.map((milestone) => (
+              <li
+                className="bg-surface border-border shadow-card rounded-xl border p-5"
+                key={milestone.milestoneId}
+              >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <p className="whitespace-pre-wrap">{milestone.note}</p>
+                  <p className="text-muted shrink-0">
+                    {formatDateTime(milestone.createdAt)}
+                  </p>
+                </div>
+                {milestone.rowCount !== 0 && milestone.repeatCount !== 0 ? (
+                  <div className="text-thread-400 mt-3 flex flex-wrap gap-x-6 gap-y-1">
+                    {milestone.rowCount !== undefined && (
+                      <p>Rows: {milestone.rowCount}</p>
+                    )}
+                    {milestone.repeatCount !== undefined && (
+                      <p>Repeats: {milestone.repeatCount}</p>
+                    )}
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted">No milestones recorded yet.</p>
+        )}
       </div>
 
       {isDeleteModalOpen && (

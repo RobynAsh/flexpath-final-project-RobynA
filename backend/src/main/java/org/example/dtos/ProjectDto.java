@@ -1,5 +1,6 @@
 package org.example.dtos;
 
+import org.example.models.Milestone;
 import org.example.models.Pattern;
 import org.example.models.PatternMaterial;
 import org.example.models.PatternTool;
@@ -18,5 +19,6 @@ public record ProjectDto(
         Pattern pattern,
         List<PatternYarn> yarn,
         List<PatternTool> tools,
-        List<PatternMaterial> materials) {
+        List<PatternMaterial> materials,
+        List<Milestone> milestones) {
 }

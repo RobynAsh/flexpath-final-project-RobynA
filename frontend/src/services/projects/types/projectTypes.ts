@@ -5,6 +5,7 @@ import type {
   PatternTag,
   PatternYarn,
 } from '../../patterns/types/patternTypes'
+import type { Milestone } from '../../milestones/types/milestoneTypes'
 
 export type Project = {
   projectId: number
@@ -29,6 +30,7 @@ export type ProjectDetails = {
   yarn: PatternYarn[]
   tools: PatternTool[]
   materials: PatternMaterial[]
+  milestones: Milestone[]
 }
 
 export type ProjectSummary = {

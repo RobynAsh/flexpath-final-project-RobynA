@@ -1,5 +1,6 @@
 package org.example.controllers;
 
+import org.example.daos.MilestoneDao;
 import org.example.daos.PatternDao;
 import org.example.daos.PatternMaterialDao;
 import org.example.daos.PatternToolDao;
@@ -84,6 +85,12 @@ public class ProjectController {
     private PatternMaterialDao patternMaterialDao;
 
     /**
+     * The milestone data access object.
+     */
+    @Autowired
+    private MilestoneDao milestoneDao;
+
+    /**
      * Gets projects owned by the currently logged-in user.
      *
      * @param principal The currently logged-in user.
@@ -126,7 +133,8 @@ public class ProjectController {
                 pattern,
                 patternYarnDao.getPatternYarnsByPatternId(pattern.getPatternId()),
                 patternToolDao.getPatternToolsByPatternId(pattern.getPatternId()),
-                patternMaterialDao.getPatternMaterialsByPatternId(pattern.getPatternId())));
+                patternMaterialDao.getPatternMaterialsByPatternId(pattern.getPatternId()),
+                milestoneDao.getMilestonesByProjectId(projectId)));
     }
 
     /**
