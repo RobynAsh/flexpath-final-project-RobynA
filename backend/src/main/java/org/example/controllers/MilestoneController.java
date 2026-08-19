@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,5 +67,31 @@ public class MilestoneController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(milestoneDao.createMilestone(milestone));
+    }
+
+    /**
+     * Deletes a milestone from a project owned by the currently logged-in user.
+     *
+     * @param principal The currently logged-in user.
+     * @param milestoneId The milestone to delete.
+     * @return A 204 response, or a 404 if the milestone is not owned by the user.
+     */
+    @DeleteMapping("/{milestoneId}")
+    public ResponseEntity<Void> delete(
+            Principal principal,
+            @PathVariable int milestoneId) {
+        Milestone milestone = milestoneDao.getMilestoneById(milestoneId);
+
+        if (milestone == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Project project = projectDao.getProjectById(milestone.getProjectId());
+        if (project == null || !project.getUsername().equals(principal.getName())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        milestoneDao.deleteMilestone(milestoneId);
+        return ResponseEntity.noContent().build();
     }
 }

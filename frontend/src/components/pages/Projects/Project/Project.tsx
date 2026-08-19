@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useDeleteProject } from '../../../../services/projects/useDeleteProject'
 import { useGetProject } from '../../../../services/projects/useGetProject'
 import { useAddMilestone } from '../../../../services/milestones/useAddMilestone'
+import { useDeleteMilestone } from '../../../../services/milestones/useDeleteMilestone'
 import { Button } from '../../../atoms/Button/Button'
 import { Chip } from '../../../atoms/Chip/Chip'
 import { Modal } from '../../../molecules/Modal/Modal'
@@ -25,12 +26,24 @@ export const Project = () => {
 
   const deleteProject = useDeleteProject()
   const addMilestone = useAddMilestone(projectId)
+  const deleteMilestone = useDeleteMilestone(projectId)
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [milestoneToDelete, setMilestoneToDelete] = useState<number | null>(
+    null,
+  )
 
   const confirmDelete = () => {
     deleteProject.mutate(projectId, {
       onSuccess: () => navigate('/projects'),
+    })
+  }
+
+  const confirmMilestoneDelete = () => {
+    if (milestoneToDelete === null) return
+
+    deleteMilestone.mutate(milestoneToDelete, {
+      onSuccess: () => setMilestoneToDelete(null),
     })
   }
 
@@ -264,11 +277,23 @@ export const Project = () => {
                 className="bg-surface border-border shadow-card rounded-xl border p-5"
                 key={milestone.milestoneId}
               >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <p className="whitespace-pre-wrap">{milestone.note}</p>
-                  <p className="text-muted shrink-0">
-                    {formatDateTime(milestone.createdAt)}
-                  </p>
+                  <div className="flex shrink-0 flex-row-reverse items-center justify-end gap-3 sm:flex-row">
+                    <p className="text-muted">
+                      {formatDateTime(milestone.createdAt)}
+                    </p>
+                    <button
+                      type="button"
+                      className="cursor-pointer rounded-md p-1 text-rose-400 transition-colors hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => {
+                        deleteMilestone.reset()
+                        setMilestoneToDelete(milestone.milestoneId)
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  </div>
                 </div>
                 {milestone.rowCount !== 0 && milestone.repeatCount !== 0 ? (
                   <div className="text-thread-400 mt-3 flex flex-wrap gap-x-6 gap-y-1">
@@ -287,6 +312,36 @@ export const Project = () => {
           <p className="text-muted">No milestones recorded yet.</p>
         )}
       </div>
+
+      {milestoneToDelete !== null && (
+        <Modal
+          headerText="Delete Milestone?"
+          closeModal={() => setMilestoneToDelete(null)}
+          closeDisabled={deleteMilestone.isPending}
+          firstButton={{
+            label: 'Cancel',
+            onClick: () => setMilestoneToDelete(null),
+            disabled: deleteMilestone.isPending,
+          }}
+          secondButton={{
+            label: deleteMilestone.isPending
+              ? 'Deleting...'
+              : 'Delete Milestone',
+            onClick: confirmMilestoneDelete,
+            disabled: deleteMilestone.isPending,
+          }}
+        >
+          <p className="my-4">
+            Are you sure you want to delete this milestone?
+          </p>
+
+          {deleteMilestone.isError && (
+            <p role="alert" className="mb-4 text-rose-500">
+              Unable to delete the milestone. Please try again.
+            </p>
+          )}
+        </Modal>
+      )}
 
       {isDeleteModalOpen && (
         <Modal

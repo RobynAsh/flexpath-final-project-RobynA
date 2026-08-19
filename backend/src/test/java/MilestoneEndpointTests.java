@@ -103,6 +103,69 @@ public class MilestoneEndpointTests extends WebStoreTest {
     }
 
     /**
+     * Tests that deleting a milestone requires authentication.
+     */
+    @Test
+    @DisplayName("DELETE /api/milestones/{milestoneId} should return a 401 if not authenticated")
+    public void deleteMilestoneShouldFailIfNotAuthenticated() {
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/milestones/1",
+                HttpMethod.DELETE,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+    }
+
+    /**
+     * Tests that a user can delete a milestone from their own project.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("DELETE /api/milestones/{milestoneId} should delete an owned milestone")
+    public void deleteMilestoneShouldDeleteOwnedMilestone() throws Exception {
+        createUsersAndProjects();
+        Integer milestoneId = createMilestoneForProject("Owned Project");
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/milestones/" + milestoneId,
+                HttpMethod.DELETE,
+                GetAuthEntity("milestone-user", "password", null),
+                String.class);
+
+        assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
+        assertEquals(0, getJdbcTemplate().queryForObject(
+                "SELECT COUNT(*) FROM flexpath_final.milestones WHERE milestone_id = ?;",
+                Integer.class,
+                milestoneId));
+    }
+
+    /**
+     * Tests that a user cannot delete a milestone from another user's project.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("DELETE /api/milestones/{milestoneId} should hide another user's milestone")
+    public void deleteMilestoneShouldNotDeleteAnotherUsersMilestone() throws Exception {
+        createUsersAndProjects();
+        Integer milestoneId = createMilestoneForProject("Other Project");
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/milestones/" + milestoneId,
+                HttpMethod.DELETE,
+                GetAuthEntity("milestone-user", "password", null),
+                String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+        assertEquals(1, getJdbcTemplate().queryForObject(
+                "SELECT COUNT(*) FROM flexpath_final.milestones WHERE milestone_id = ?;",
+                Integer.class,
+                milestoneId));
+    }
+
+    /**
      * Creates two users and one project belonging to each user.
      *
      * @throws Exception If test data cannot be created.
@@ -119,5 +182,21 @@ public class MilestoneEndpointTests extends WebStoreTest {
         executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
                 + "SELECT username, pattern_id, 'Other Project', 'In Progress' "
                 + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
+    }
+
+    /**
+     * Creates a milestone for the project with the supplied name.
+     *
+     * @param projectName The project that owns the milestone.
+     * @return The new milestone id.
+     * @throws Exception If the milestone cannot be created.
+     */
+    private Integer createMilestoneForProject(String projectName) throws Exception {
+        executeSql("INSERT INTO flexpath_final.milestones (project_id, note) "
+                + "SELECT project_id, 'Test milestone' FROM flexpath_final.projects "
+                + "WHERE name = '" + projectName + "';");
+        return getJdbcTemplate().queryForObject(
+                "SELECT milestone_id FROM flexpath_final.milestones WHERE note = 'Test milestone';",
+                Integer.class);
     }
 }
