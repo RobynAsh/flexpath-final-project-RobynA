@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useProfile } from '../../providers/ProfileContext'
 import { projectQueryKey } from '../projects/useGetProject'
 import type { AddMilestoneRequest, Milestone } from './types/milestoneTypes'
+import { recentMilestonesQueryKey } from './useGetRecentMilestones'
 
 const addMilestone = async (
   projectId: number,
@@ -31,9 +32,11 @@ export const useAddMilestone = (projectId: number) => {
   return useMutation({
     mutationFn: (milestone: AddMilestoneRequest) =>
       addMilestone(projectId, milestone, jwtToken),
-    onSuccess: () =>
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [...projectQueryKey, projectId],
-      }),
+      })
+      queryClient.invalidateQueries({ queryKey: recentMilestonesQueryKey })
+    },
   })
 }

@@ -1,5 +1,6 @@
 import org.example.SpringBootApplication;
 import org.example.models.Milestone;
+import org.example.dtos.RecentMilestoneDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +21,64 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SpringBootApplication.class)
 @Import(FinalTestConfiguration.class)
 public class MilestoneEndpointTests extends WebStoreTest {
+    /**
+     * Tests that reading recent milestones requires authentication.
+     */
+    @Test
+    @DisplayName("GET /api/milestones/recent should return a 401 if not authenticated")
+    public void recentMilestonesShouldFailIfNotAuthenticated() {
+        var result = restTemplate.getForEntity(
+                getBaseUrl() + "/api/milestones/recent",
+                String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+    }
+
+    /**
+     * Tests that only the current user's three newest milestones are returned.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/milestones/recent should return the user's three newest milestones")
+    public void recentMilestonesShouldReturnThreeNewestOwnedMilestones() throws Exception {
+        createUsersAndProjects();
+        executeSql("INSERT INTO flexpath_final.milestones "
+                + "(project_id, note, row_count, repeat_count, created_at) "
+                + "SELECT project_id, 'Oldest owned', 10, 1, '2026-01-01 10:00:00' "
+                + "FROM flexpath_final.projects WHERE name = 'Owned Project';");
+        executeSql("INSERT INTO flexpath_final.milestones "
+                + "(project_id, note, row_count, repeat_count, created_at) "
+                + "SELECT project_id, 'Third newest', 20, 2, '2026-02-01 10:00:00' "
+                + "FROM flexpath_final.projects WHERE name = 'Owned Project';");
+        executeSql("INSERT INTO flexpath_final.milestones "
+                + "(project_id, note, row_count, repeat_count, created_at) "
+                + "SELECT project_id, 'Second newest', 30, 3, '2026-03-01 10:00:00' "
+                + "FROM flexpath_final.projects WHERE name = 'Owned Project';");
+        executeSql("INSERT INTO flexpath_final.milestones "
+                + "(project_id, note, row_count, repeat_count, created_at) "
+                + "SELECT project_id, 'Newest owned', 40, 4, '2026-04-01 10:00:00' "
+                + "FROM flexpath_final.projects WHERE name = 'Owned Project';");
+        executeSql("INSERT INTO flexpath_final.milestones (project_id, note, created_at) "
+                + "SELECT project_id, 'Other user newest', '2026-05-01 10:00:00' "
+                + "FROM flexpath_final.projects WHERE name = 'Other Project';");
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/milestones/recent",
+                HttpMethod.GET,
+                GetAuthEntity("milestone-user", "password", null),
+                RecentMilestoneDto[].class);
+        var milestones = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(milestones);
+        assertEquals(3, milestones.length);
+        assertEquals("Newest owned", milestones[0].milestone().getNote());
+        assertEquals("Second newest", milestones[1].milestone().getNote());
+        assertEquals("Third newest", milestones[2].milestone().getNote());
+        assertEquals("Owned Project", milestones[0].projectName());
+    }
+
     /**
      * Tests that creating a milestone requires authentication.
      */

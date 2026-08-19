@@ -6,10 +6,19 @@ import { DashedCard } from '../../atoms/DashedCard/DashedCard'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { Link } from 'react-router-dom'
 import { useGetProjects } from '../../../services/projects/useGetProjects'
+import { useGetRecentMilestones } from '../../../services/milestones/useGetRecentMilestones'
+
+const formatDateTime = (value: string) => new Date(value).toLocaleString()
 
 export const Home = () => {
   const { profile } = useProfile()
   const { data: projects } = useGetProjects()
+  const {
+    data: recentMilestones,
+    isLoading: areMilestonesLoading,
+    isError: areMilestonesError,
+  } = useGetRecentMilestones()
+
   const projectCounts = {
     total: projects?.length ?? 0,
     notStarted:
@@ -100,9 +109,44 @@ export const Home = () => {
         </DashedCard>
       </div>
 
-      <div>
-        <h2>Recently Updated Projects</h2>
-        <p>Place holder for recently updated projects.</p>
+      <div className="flex flex-col gap-3">
+        <h2>Recent Project Milestones</h2>
+        {areMilestonesLoading ? (
+          <p className="text-muted">Loading recent milestones...</p>
+        ) : areMilestonesError ? (
+          <p className="text-rose-500">Unable to load recent milestones.</p>
+        ) : recentMilestones && recentMilestones.length > 0 ? (
+          <ul className="grid gap-3 lg:grid-cols-3">
+            {recentMilestones.map(({ projectName, milestone }) => (
+              <li key={milestone.milestoneId}>
+                <DashedCard className="h-full">
+                  <div className="flex h-full flex-col gap-2">
+                    <Link
+                      className="text-primary hover:text-primary-hover text-xl underline"
+                      to={`/projects/${milestone.projectId}`}
+                    >
+                      {projectName}
+                    </Link>
+                    <p className="whitespace-pre-wrap">{milestone.note}</p>
+                    <div className="text-thread-400 mt-auto flex flex-wrap gap-x-6 gap-y-1">
+                      {milestone.rowCount > 0 || milestone.repeatCount > 0 ? (
+                        <>
+                          <p>Rows: {milestone.rowCount}</p>
+                          <p>Repeats: {milestone.repeatCount}</p>
+                        </>
+                      ) : null}
+                    </div>
+                    <p className="text-muted text-sm">
+                      {formatDateTime(milestone.createdAt)}
+                    </p>
+                  </div>
+                </DashedCard>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted">No milestones recorded yet.</p>
+        )}
       </div>
     </div>
   )

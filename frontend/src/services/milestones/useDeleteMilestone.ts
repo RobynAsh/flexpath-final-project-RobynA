@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useProfile } from '../../providers/ProfileContext'
 import { projectQueryKey } from '../projects/useGetProject'
+import { recentMilestonesQueryKey } from './useGetRecentMilestones'
 
 const deleteMilestone = async (milestoneId: number, token: string) => {
   const response = await fetch(`/api/milestones/${milestoneId}`, {
@@ -21,9 +22,11 @@ export const useDeleteMilestone = (projectId: number) => {
 
   return useMutation({
     mutationFn: (milestoneId: number) => deleteMilestone(milestoneId, jwtToken),
-    onSuccess: () =>
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [...projectQueryKey, projectId],
-      }),
+      })
+      queryClient.invalidateQueries({ queryKey: recentMilestonesQueryKey })
+    },
   })
 }

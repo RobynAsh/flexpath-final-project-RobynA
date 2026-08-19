@@ -10,3 +10,8 @@ export type Milestone = AddMilestoneRequest & {
   createdAt: string
   updatedAt: string
 }
+
+export type RecentMilestone = {
+  projectName: string
+  milestone: Milestone
+}

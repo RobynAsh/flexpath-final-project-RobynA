@@ -1,6 +1,7 @@
 package org.example.daos;
 
 import org.example.exceptions.DaoException;
+import org.example.dtos.RecentMilestoneDto;
 import org.example.models.Milestone;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -49,6 +50,24 @@ public class MilestoneDao extends JdbcDao {
                 "SELECT * FROM milestones WHERE project_id = ? ORDER BY created_at DESC, milestone_id DESC;",
                 this::mapToMilestone,
                 projectId);
+    }
+
+    /**
+     * Gets the three most recently created milestones for projects owned by a user.
+     *
+     * @param username The user who owns the projects.
+     * @return The user's three most recent milestones and their project names.
+     */
+    public List<RecentMilestoneDto> getRecentMilestonesByUsername(String username) {
+        return jdbcTemplate.query(
+                "SELECT m.*, p.name AS project_name FROM milestones m "
+                        + "INNER JOIN projects p ON p.project_id = m.project_id "
+                        + "WHERE p.username = ? "
+                        + "ORDER BY m.created_at DESC, m.milestone_id DESC LIMIT 3;",
+                (resultSet, rowNumber) -> new RecentMilestoneDto(
+                        resultSet.getString("project_name"),
+                        mapToMilestone(resultSet, rowNumber)),
+                username);
     }
 
     /**
