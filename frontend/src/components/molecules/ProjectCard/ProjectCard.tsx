@@ -1,6 +1,7 @@
 import { faPen } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Link } from 'react-router-dom'
+import { useProfile } from '../../../providers/ProfileContext'
 import type { ProjectSummary } from '../../../services/projects/types/projectTypes'
 import { Button } from '../../atoms/Button/Button'
 import { Chip } from '../../atoms/Chip/Chip'
@@ -14,6 +15,8 @@ const formatDateTime = (value: string) => new Date(value).toLocaleString()
 
 export const ProjectCard = ({ details }: { details: ProjectSummary }) => {
   const { project, tags } = details
+  const { profile } = useProfile()
+  const isOwner = profile?.username === project.username
 
   return (
     <article className="bg-surface shadow-card border-border overflow-hidden rounded-xl border">
@@ -27,6 +30,7 @@ export const ProjectCard = ({ details }: { details: ProjectSummary }) => {
               {project.name}
             </Link>
           </h3>
+          <p className="text-muted">Owned by {project.username}</p>
           <div className="mt-1 flex flex-wrap gap-2">
             <Chip label={project.status} />
             <Chip label={project.public ? 'Public' : 'Private'} />
@@ -42,15 +46,17 @@ export const ProjectCard = ({ details }: { details: ProjectSummary }) => {
               <strong>Updated:</strong> {formatDateTime(project.updatedAt)}
             </p>
           </div>
-          <Link
-            to={`/projects/${project.projectId}/update`}
-            aria-label={`Edit ${project.name}`}
-          >
-            <Button variant="tertiary">
-              <FontAwesomeIcon icon={faPen} />
-              <span className="sr-only">Edit {project.name}</span>
-            </Button>
-          </Link>
+          {isOwner && (
+            <Link
+              to={`/projects/${project.projectId}/update`}
+              aria-label={`Edit ${project.name}`}
+            >
+              <Button variant="tertiary">
+                <FontAwesomeIcon icon={faPen} />
+                <span className="sr-only">Edit {project.name}</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

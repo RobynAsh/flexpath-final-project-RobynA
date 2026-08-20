@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -36,7 +37,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 
 /**
- * Controller for projects owned by the currently logged-in user.
+ * Controller for projects visible to the currently logged-in user.
  */
 @RestController
 @RequestMapping("/api/projects")
@@ -91,14 +92,21 @@ public class ProjectController {
     private MilestoneDao milestoneDao;
 
     /**
-     * Gets projects owned by the currently logged-in user.
+     * Gets projects visible to the currently logged-in user.
      *
      * @param principal The currently logged-in user.
-     * @return The user's projects.
+     * @param includePublic Whether to include public projects owned by other users.
+     * @return The requested projects.
      */
     @GetMapping
-    public List<ProjectSummaryDto> list(Principal principal) {
-        return projectDao.getProjectsByUsername(principal.getName()).stream()
+    public List<ProjectSummaryDto> list(
+            Principal principal,
+            @RequestParam(defaultValue = "false") boolean includePublic) {
+        List<Project> projects = includePublic
+                ? projectDao.getVisibleProjectsByUsername(principal.getName())
+                : projectDao.getProjectsByUsername(principal.getName());
+
+        return projects.stream()
                 .map(project -> new ProjectSummaryDto(
                         project,
                         getProjectTags(project.getProjectId())))
@@ -106,18 +114,19 @@ public class ProjectController {
     }
 
     /**
-     * Gets one project owned by the currently logged-in user.
+     * Gets one project owned by the currently logged-in user or a public project.
      *
      * @param principal The currently logged-in user.
      * @param projectId The project id.
      * @return The project, its pattern, and the pattern resources, or a 404 if
-     *         the project is not owned by the user.
+     *         the project is private and not owned by the user.
      */
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectDto> get(Principal principal, @PathVariable int projectId) {
         Project project = projectDao.getProjectById(projectId);
 
-        if (project == null || !project.getUsername().equals(principal.getName())) {
+        if (project == null
+                || (!project.getUsername().equals(principal.getName()) && !project.isPublic())) {
             return ResponseEntity.notFound().build();
         }
 
@@ -125,6 +134,10 @@ public class ProjectController {
 
         if (pattern == null) {
             return ResponseEntity.notFound().build();
+        }
+
+        if (!project.getUsername().equals(principal.getName())) {
+            pattern.setLink(null);
         }
 
         return ResponseEntity.ok(new ProjectDto(

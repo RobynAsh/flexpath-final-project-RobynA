@@ -16,6 +16,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Tests for the authenticated user's project endpoints.
@@ -30,20 +31,20 @@ public class ProjectEndpointTests extends WebStoreTest {
     @DisplayName("GET /api/projects should return a 401 if not authenticated")
     public void listProjectsShouldFailIfNotAuthenticated() {
         var result = restTemplate.getForEntity(
-                getBaseUrl() + "/api/projects",
+                getBaseUrl() + "/api/projects?includePublic=true",
                 String.class);
 
         assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
     }
 
     /**
-     * Tests that listing projects only returns projects owned by the logged-in user.
+     * Tests that listing projects returns owned projects and other users' public projects.
      *
      * @throws Exception If test data cannot be created.
      */
     @Test
-    @DisplayName("GET /api/projects should only return the authenticated user's projects")
-    public void listProjectsShouldOnlyReturnOwnedProjects() throws Exception {
+    @DisplayName("GET /api/projects should return owned and public projects")
+    public void listProjectsShouldReturnOwnedAndPublicProjects() throws Exception {
         createUsersAndPatterns();
         executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
                 + "SELECT 'project-user', pattern_id, 'Owned Project', 'In Progress' "
@@ -51,11 +52,47 @@ public class ProjectEndpointTests extends WebStoreTest {
         executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
                 + "SELECT 'other-user', pattern_id, 'Other Project', 'Completed' "
                 + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status, is_public) "
+                + "SELECT 'other-user', pattern_id, 'Public Project', 'In Progress', TRUE "
+                + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
         executeSql("INSERT INTO flexpath_final.tags (username, name) VALUES ('project-user', 'gift');");
         executeSql("INSERT INTO flexpath_final.project_tags (project_id, tag_id) "
                 + "SELECT p.project_id, t.tag_id FROM flexpath_final.projects p "
                 + "JOIN flexpath_final.tags t ON t.username = p.username "
                 + "WHERE p.name = 'Owned Project' AND t.name = 'gift';");
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/projects?includePublic=true",
+                HttpMethod.GET,
+                GetAuthEntity("project-user", "password"),
+                ProjectSummaryDto[].class);
+        var projects = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(projects);
+        assertEquals(2, projects.length);
+        assertEquals("Owned Project", projects[0].project().getName());
+        assertEquals("project-user", projects[0].project().getUsername());
+        assertEquals("gift", projects[0].tags().get(0).getName());
+        assertEquals("Public Project", projects[1].project().getName());
+        assertEquals("other-user", projects[1].project().getUsername());
+    }
+
+    /**
+     * Tests that public projects can be excluded from the project list.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/projects should return only owned projects by default")
+    public void listProjectsShouldExcludePublicProjectsByDefault() throws Exception {
+        createUsersAndPatterns();
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
+                + "SELECT 'project-user', pattern_id, 'Owned Project', 'In Progress' "
+                + "FROM flexpath_final.patterns WHERE name = 'Owned Pattern';");
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status, is_public) "
+                + "SELECT 'other-user', pattern_id, 'Public Project', 'In Progress', TRUE "
+                + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
 
         var result = restTemplate.exchange(
                 getBaseUrl() + "/api/projects",
@@ -68,8 +105,6 @@ public class ProjectEndpointTests extends WebStoreTest {
         assertNotNull(projects);
         assertEquals(1, projects.length);
         assertEquals("Owned Project", projects[0].project().getName());
-        assertEquals("project-user", projects[0].project().getUsername());
-        assertEquals("gift", projects[0].tags().get(0).getName());
     }
 
     /**
@@ -161,6 +196,42 @@ public class ProjectEndpointTests extends WebStoreTest {
                 String.class);
 
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+    }
+
+    /**
+     * Tests that a public project can be viewed by another user without exposing
+     * its pattern instruction link.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/projects/{projectId} should return a redacted public project")
+    public void getProjectShouldReturnRedactedPublicProject() throws Exception {
+        createUsersAndPatterns();
+        executeSql("UPDATE flexpath_final.patterns SET link = 'https://example.com/private-pattern' "
+                + "WHERE name = 'Other Pattern';");
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status, is_public) "
+                + "SELECT 'other-user', pattern_id, 'Public Project', 'In Progress', TRUE "
+                + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
+        executeSql("INSERT INTO flexpath_final.milestones (project_id, note) "
+                + "SELECT project_id, 'Visible milestone' FROM flexpath_final.projects "
+                + "WHERE name = 'Public Project';");
+        Integer projectId = getJdbcTemplate().queryForObject(
+                "SELECT project_id FROM flexpath_final.projects WHERE name = 'Public Project';",
+                Integer.class);
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/projects/" + projectId,
+                HttpMethod.GET,
+                GetAuthEntity("project-user", "password"),
+                ProjectDto.class);
+        var details = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(details);
+        assertEquals("Public Project", details.project().getName());
+        assertNull(details.pattern().getLink());
+        assertEquals("Visible milestone", details.milestones().get(0).getNote());
     }
 
     /**

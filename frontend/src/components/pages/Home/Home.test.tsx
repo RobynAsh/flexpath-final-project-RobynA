@@ -5,16 +5,17 @@ import {
   type ProfileContextValue,
 } from '../../../providers/ProfileContext'
 import { MemoryRouter } from 'react-router-dom'
+import { useGetProjects } from '../../../services/projects/useGetProjects'
 
 jest.mock('../../../services/projects/useGetProjects', () => ({
-  useGetProjects: () => ({
+  useGetProjects: jest.fn(() => ({
     data: [
       { project: { projectId: 1, status: 'Not Started' }, tags: [] },
       { project: { projectId: 2, status: 'In Progress' }, tags: [] },
       { project: { projectId: 3, status: 'In Progress' }, tags: [] },
       { project: { projectId: 4, status: 'Completed' }, tags: [] },
     ],
-  }),
+  })),
 }))
 
 jest.mock('../../../services/milestones/useGetRecentMilestones', () => ({
@@ -82,6 +83,7 @@ describe('Home', () => {
       </MemoryRouter>,
     )
     expect(screen.getByText('Welcome back,')).toBeInTheDocument()
+    expect(useGetProjects).toHaveBeenCalledWith(false)
     expect(screen.getByText('4')).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
     expect(screen.getAllByText('1')).toHaveLength(2)

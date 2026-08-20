@@ -50,6 +50,19 @@ public class ProjectDao extends JdbcDao {
     }
 
     /**
+     * Gets projects owned by a user together with public projects owned by other users.
+     *
+     * @param username The username of the user viewing the projects.
+     * @return The projects visible to the user.
+     */
+    public List<Project> getVisibleProjectsByUsername(String username) {
+        return jdbcTemplate.query(
+                "SELECT * FROM projects WHERE username = ? OR is_public = TRUE ORDER BY project_id;",
+                this::mapToProject,
+                username);
+    }
+
+    /**
      * Gets a project by id.
      *
      * @param projectId The project id.

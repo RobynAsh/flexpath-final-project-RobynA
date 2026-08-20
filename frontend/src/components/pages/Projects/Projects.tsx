@@ -15,7 +15,7 @@ import { SortForm, type SortDirection } from '../../form/SortForm/SortForm'
 import { ProjectCard } from '../../molecules/ProjectCard/ProjectCard'
 
 export const Projects = () => {
-  const { data: projects, isPending, isError } = useGetProjects()
+  const { data: projects, isPending, isError } = useGetProjects(true)
   const [filterField, setFilterField] = useState<ProjectFilterField>('name')
   const [filterText, setFilterText] = useState('')
   const [sortField, setSortField] = useState<ProjectSortField>('updatedAt')
@@ -29,10 +29,6 @@ export const Projects = () => {
     sortField,
     sortDirection,
   })
-  const userFilterFields = filterFields.filter(
-    ({ value }) => value !== 'username',
-  )
-
   return (
     <div className="flex w-full max-w-6xl flex-col gap-5 md:self-center">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-0">
@@ -50,7 +46,7 @@ export const Projects = () => {
 
       {projects && projects.length > 0 && (
         <FilterForm
-          filterFields={userFilterFields}
+          filterFields={filterFields}
           filterField={filterField}
           filterText={filterText}
           onFilterFieldChange={(field) =>

@@ -2,6 +2,7 @@ import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useProfile } from '../../../../providers/ProfileContext'
 import { useDeleteProject } from '../../../../services/projects/useDeleteProject'
 import { useGetProject } from '../../../../services/projects/useGetProject'
 import { useAddMilestone } from '../../../../services/milestones/useAddMilestone'
@@ -22,6 +23,9 @@ export const Project = () => {
   const navigate = useNavigate()
   const { projectId: projectIdParam } = useParams()
   const projectId = Number(projectIdParam)
+
+  const { profile } = useProfile()
+
   const { data: details, isPending, isError } = useGetProject(projectId)
 
   const deleteProject = useDeleteProject()
@@ -63,37 +67,41 @@ export const Project = () => {
   }
 
   const { project, tags, pattern, yarn, tools, materials, milestones } = details
+  const isOwner = profile?.username === project.username
 
   return (
     <div className="flex w-full max-w-5xl flex-col gap-6 md:self-center">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1>{project.name}</h1>
+          <p className="text-muted">Owned by {project.username}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Chip label={project.status} />
             <Chip label={project.public ? 'Public' : 'Private'} />
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row md:shrink-0">
-          <div>
-            <Button
-              variant="secondary"
-              onClick={() => setIsDeleteModalOpen(true)}
-            >
-              <FontAwesomeIcon icon={faTrash} />
-              Delete Project
-            </Button>
-          </div>
-          <div>
-            <Link to={`/projects/${project.projectId}/update`}>
-              <Button variant="tertiary">
-                <FontAwesomeIcon icon={faPen} />
-                Edit Project
+        {isOwner && (
+          <div className="flex flex-col gap-2 sm:flex-row md:shrink-0">
+            <div>
+              <Button
+                variant="secondary"
+                onClick={() => setIsDeleteModalOpen(true)}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+                Delete Project
               </Button>
-            </Link>
+            </div>
+            <div>
+              <Link to={`/projects/${project.projectId}/update`}>
+                <Button variant="tertiary">
+                  <FontAwesomeIcon icon={faPen} />
+                  Edit Project
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="bg-surface border-border shadow-card grid gap-5 rounded-xl border p-5 md:grid-cols-2">
@@ -144,13 +152,15 @@ export const Project = () => {
             {displayValue(pattern.description)}
           </p>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link
-              className="text-olive-600 underline hover:text-olive-400"
-              to={`/patterns/${pattern.patternId}`}
-            >
-              View pattern details
-            </Link>
-            {pattern.link && (
+            {isOwner && (
+              <Link
+                className="text-olive-600 underline hover:text-olive-400"
+                to={`/patterns/${pattern.patternId}`}
+              >
+                View pattern details
+              </Link>
+            )}
+            {isOwner && pattern.link && (
               <a
                 className="text-olive-600 underline hover:text-olive-400"
                 href={pattern.link}
@@ -265,11 +275,13 @@ export const Project = () => {
           <h2 className="border-thread-200 border-b-2 border-dashed pb-2">
             Milestones
           </h2>
-          <p className="text-muted mt-2">
-            Record a note and optionally track your current row or repeat.
-          </p>
+          {isOwner && (
+            <p className="text-muted mt-2">
+              Record a note and optionally track your current row or repeat.
+            </p>
+          )}
         </div>
-        <MilestoneForm onSubmit={addMilestone.mutateAsync} />
+        {isOwner && <MilestoneForm onSubmit={addMilestone.mutateAsync} />}
         {milestones.length > 0 ? (
           <ul className="grid gap-3">
             {milestones.map((milestone) => (
@@ -283,16 +295,19 @@ export const Project = () => {
                     <p className="text-muted">
                       {formatDateTime(milestone.createdAt)}
                     </p>
-                    <button
-                      type="button"
-                      className="cursor-pointer rounded-md p-1 text-rose-400 transition-colors hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => {
-                        deleteMilestone.reset()
-                        setMilestoneToDelete(milestone.milestoneId)
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
+                    {isOwner && (
+                      <button
+                        type="button"
+                        aria-label={`Delete milestone from ${formatDateTime(milestone.createdAt)}`}
+                        className="cursor-pointer rounded-md p-1 text-rose-400 transition-colors hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => {
+                          deleteMilestone.reset()
+                          setMilestoneToDelete(milestone.milestoneId)
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
+                    )}
                   </div>
                 </div>
                 {milestone.rowCount !== 0 && milestone.repeatCount !== 0 ? (
@@ -313,7 +328,7 @@ export const Project = () => {
         )}
       </div>
 
-      {milestoneToDelete !== null && (
+      {isOwner && milestoneToDelete !== null && (
         <Modal
           headerText="Delete Milestone?"
           closeModal={() => setMilestoneToDelete(null)}
@@ -343,7 +358,7 @@ export const Project = () => {
         </Modal>
       )}
 
-      {isDeleteModalOpen && (
+      {isOwner && isDeleteModalOpen && (
         <Modal
           headerText="Delete Project?"
           closeModal={() => setIsDeleteModalOpen(false)}
