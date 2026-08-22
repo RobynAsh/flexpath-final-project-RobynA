@@ -12,15 +12,18 @@ import { MultiSelect } from '../../form/MultiSelect/MultiSelect'
 import { Select } from '../../form/Select/Select'
 import { TextArea } from '../../form/TextArea/TextArea'
 import { TextField } from '../../form/TextField/TextField'
+import { Username } from '../../form/Username/Username'
 
 type ProjectFormProps = {
   patterns: PatternDetails[]
+  includeUsername?: boolean
   initialValues?: AddProjectRequest
   onSubmit: (_project: AddProjectRequest) => Promise<unknown>
   successRedirectPath: string
 }
 
 const emptyProject: AddProjectRequest = {
+  username: '',
   patternId: 0,
   name: '',
   status: 'Not Started',
@@ -41,6 +44,7 @@ const statusOptions = [
 
 export const ProjectForm = ({
   patterns,
+  includeUsername = false,
   initialValues = emptyProject,
   onSubmit,
   successRedirectPath,
@@ -51,12 +55,30 @@ export const ProjectForm = ({
     control,
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<AddProjectRequest>({ defaultValues: initialValues })
 
+  const usernameField = register('username', {
+    required: includeUsername ? 'Username is required.' : false,
+  })
   const patternField = register('patternId', {
     valueAsNumber: true,
-    validate: (value) => value > 0 || 'Pattern is required.',
+    validate: (value) => {
+      if (value <= 0) return 'Pattern is required.'
+
+      const pattern = patterns.find(
+        ({ pattern: option }) => option.patternId === value,
+      )
+      if (
+        includeUsername &&
+        pattern?.pattern.username !== getValues('username')
+      ) {
+        return 'Select a pattern owned by this user.'
+      }
+
+      return true
+    },
   })
   const nameField = register('name', {
     required: 'Project name is required.',
@@ -89,7 +111,9 @@ export const ProjectForm = ({
     { value: '0', label: 'Select a pattern' },
     ...patterns.map(({ pattern }) => ({
       value: String(pattern.patternId),
-      label: pattern.name,
+      label: includeUsername
+        ? `${pattern.name} (${pattern.username})`
+        : pattern.name,
     })),
   ]
 
@@ -99,6 +123,14 @@ export const ProjectForm = ({
       onSubmit={handleSubmit(submitProject)}
       className="flex w-full max-w-4xl flex-col gap-5 md:self-center"
     >
+      {includeUsername && (
+        <Username
+          {...usernameField}
+          error={errors.username?.message}
+          aria-invalid={Boolean(errors.username)}
+        />
+      )}
+
       <div className="grid gap-4 md:grid-cols-2">
         <TextField
           {...nameField}

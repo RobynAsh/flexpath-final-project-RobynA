@@ -5,6 +5,7 @@ import { useProfile } from '../../../providers/ProfileContext'
 import type { ProjectSummary } from '../../../services/projects/types/projectTypes'
 import { Button } from '../../atoms/Button/Button'
 import { Chip } from '../../atoms/Chip/Chip'
+import { Checkbox } from '../../form/Checkbox/Checkbox'
 
 const displayValue = (value: string | null) => value || 'Not provided'
 
@@ -13,7 +14,21 @@ const formatDate = (value: string | null) =>
 
 const formatDateTime = (value: string) => new Date(value).toLocaleString()
 
-export const ProjectCard = ({ details }: { details: ProjectSummary }) => {
+export const ProjectCard = ({
+  details,
+  selected = false,
+  onSelectedChange,
+  editPath,
+  showUsername = true,
+  linkTitle = true,
+}: {
+  details: ProjectSummary
+  selected?: boolean
+  onSelectedChange?: (_selected: boolean) => void
+  editPath?: string
+  showUsername?: boolean
+  linkTitle?: boolean
+}) => {
   const { project, tags } = details
   const { profile } = useProfile()
   const isOwner = profile?.username === project.username
@@ -21,19 +36,34 @@ export const ProjectCard = ({ details }: { details: ProjectSummary }) => {
   return (
     <article className="bg-surface shadow-card border-border overflow-hidden rounded-xl border">
       <div className="bg-honey-50 flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3>
-            <Link
-              className="text-olive-600 underline decoration-2 underline-offset-4 hover:text-olive-400"
-              to={`/projects/${project.projectId}`}
-            >
-              {project.name}
-            </Link>
-          </h3>
-          <p className="text-muted">Owned by {project.username}</p>
-          <div className="mt-1 flex flex-wrap gap-2">
-            <Chip label={project.status} />
-            <Chip label={project.public ? 'Public' : 'Private'} />
+        <div className="flex items-center gap-3">
+          {onSelectedChange && (
+            <Checkbox
+              id={`select-project-${project.projectId}`}
+              checked={selected}
+              onChange={(event) => onSelectedChange(event.target.checked)}
+            />
+          )}
+          <div>
+            <h3>
+              {linkTitle ? (
+                <Link
+                  className="text-olive-600 underline decoration-2 underline-offset-4 hover:text-olive-400"
+                  to={`/projects/${project.projectId}`}
+                >
+                  {project.name}
+                </Link>
+              ) : (
+                project.name
+              )}
+            </h3>
+            {showUsername && (
+              <p className="text-muted">Owned by {project.username}</p>
+            )}
+            <div className="mt-1 flex flex-wrap gap-2">
+              <Chip label={project.status} />
+              <Chip label={project.public ? 'Public' : 'Private'} />
+            </div>
           </div>
         </div>
 
@@ -46,9 +76,9 @@ export const ProjectCard = ({ details }: { details: ProjectSummary }) => {
               <strong>Updated:</strong> {formatDateTime(project.updatedAt)}
             </p>
           </div>
-          {isOwner && (
+          {(editPath || isOwner) && (
             <Link
-              to={`/projects/${project.projectId}/update`}
+              to={editPath ?? `/projects/${project.projectId}/update`}
               aria-label={`Edit ${project.name}`}
             >
               <Button variant="tertiary">

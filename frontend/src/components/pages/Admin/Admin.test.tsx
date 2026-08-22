@@ -15,5 +15,8 @@ describe('Admin', () => {
     expect(
       screen.getByRole('heading', { name: 'Admin Portal' }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Manage Projects' }),
+    ).toHaveAttribute('href', '/admin/projects')
   })
 })

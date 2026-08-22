@@ -13,6 +13,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AdminManagePatterns } from '../../pages/Admin/AdminManagePatterns/AdminManagePatterns'
 import { AdminAddPattern } from '../../pages/Admin/AdminManagePatterns/AdminAddPattern'
 import { AdminEditPattern } from '../../pages/Admin/AdminManagePatterns/AdminEditPattern'
+import { AdminManageProjects } from '../../pages/Admin/AdminManageProjects/AdminManageProjects'
+import { AdminAddProject } from '../../pages/Admin/AdminManageProjects/AdminAddProject'
+import { AdminEditProject } from '../../pages/Admin/AdminManageProjects/AdminEditProject'
 import { Patterns } from '../../pages/Patterns/Patterns'
 import { Projects } from '../../pages/Projects/Projects'
 import { AddPattern } from '../../pages/Patterns/AddPattern/AddPattern'
@@ -86,6 +89,18 @@ export const Router = () => {
                   <Route
                     path="patterns/edit/:patternId"
                     element={<AdminEditPattern />}
+                  />
+
+                  {/* Admin - Projects */}
+                  <Route path="projects" element={<AdminManageProjects />} />
+                  <Route path="projects/add" element={<AdminAddProject />} />
+                  <Route
+                    path="projects/edit"
+                    element={<Navigate to="/admin/projects" replace />}
+                  />
+                  <Route
+                    path="projects/edit/:projectId"
+                    element={<AdminEditProject />}
                   />
                 </Route>
               </Route>

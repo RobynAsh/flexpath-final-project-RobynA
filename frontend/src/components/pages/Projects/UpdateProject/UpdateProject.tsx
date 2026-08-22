@@ -45,6 +45,7 @@ export const UpdateProject = () => {
 
   const { project, tags } = projectDetails
   const initialValues: AddProjectRequest = {
+    username: project.username,
     patternId: project.patternId,
     name: project.name,
     status: project.status,

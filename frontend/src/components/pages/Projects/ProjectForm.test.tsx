@@ -28,6 +28,7 @@ const patterns: PatternDetails[] = [
 ]
 
 const validProject: AddProjectRequest = {
+  username: '',
   patternId: 12,
   name: 'Birthday Cardigan',
   status: 'In Progress',
@@ -87,6 +88,34 @@ describe('ProjectForm', () => {
 
     expect(await screen.findByText('Project name is required.')).toBeVisible()
     expect(screen.getByText('Pattern is required.')).toBeVisible()
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  test('requires a username and matching pattern for admin forms', async () => {
+    const onSubmit = jest.fn().mockResolvedValue(undefined)
+    render(
+      <MemoryRouter>
+        <ProjectForm
+          includeUsername
+          patterns={patterns}
+          onSubmit={onSubmit}
+          successRedirectPath="/admin/projects"
+        />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Project Name'), {
+      target: { value: 'Admin Project' },
+    })
+    fireEvent.change(screen.getByLabelText('Pattern'), {
+      target: { value: '12' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save Project' }))
+
+    expect(await screen.findByText('Username is required.')).toBeVisible()
+    expect(
+      screen.getByText('Select a pattern owned by this user.'),
+    ).toBeVisible()
     expect(onSubmit).not.toHaveBeenCalled()
   })
 })

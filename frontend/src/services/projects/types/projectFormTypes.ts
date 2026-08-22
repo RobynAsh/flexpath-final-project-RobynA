@@ -1,4 +1,5 @@
 export type AddProjectRequest = {
+  username: string
   patternId: number
   name: string
   status: string
