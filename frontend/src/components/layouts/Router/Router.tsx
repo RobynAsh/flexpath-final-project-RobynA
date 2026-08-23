@@ -16,6 +16,9 @@ import { AdminEditPattern } from '../../pages/Admin/AdminManagePatterns/AdminEdi
 import { AdminManageProjects } from '../../pages/Admin/AdminManageProjects/AdminManageProjects'
 import { AdminAddProject } from '../../pages/Admin/AdminManageProjects/AdminAddProject'
 import { AdminEditProject } from '../../pages/Admin/AdminManageProjects/AdminEditProject'
+import { AdminManageMilestones } from '../../pages/Admin/AdminManageMilestones/AdminManageMilestones'
+import { AdminAddMilestone } from '../../pages/Admin/AdminManageMilestones/AdminAddMilestone'
+import { AdminEditMilestone } from '../../pages/Admin/AdminManageMilestones/AdminEditMilestone'
 import { Patterns } from '../../pages/Patterns/Patterns'
 import { Projects } from '../../pages/Projects/Projects'
 import { AddPattern } from '../../pages/Patterns/AddPattern/AddPattern'
@@ -101,6 +104,24 @@ export const Router = () => {
                   <Route
                     path="projects/edit/:projectId"
                     element={<AdminEditProject />}
+                  />
+
+                  {/* Admin - Milestones */}
+                  <Route
+                    path="milestones"
+                    element={<AdminManageMilestones />}
+                  />
+                  <Route
+                    path="milestones/add"
+                    element={<AdminAddMilestone />}
+                  />
+                  <Route
+                    path="milestones/edit"
+                    element={<Navigate to="/admin/milestones" replace />}
+                  />
+                  <Route
+                    path="milestones/edit/:milestoneId"
+                    element={<AdminEditMilestone />}
                   />
                 </Route>
               </Route>

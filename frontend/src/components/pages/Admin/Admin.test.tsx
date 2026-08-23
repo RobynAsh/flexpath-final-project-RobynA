@@ -18,5 +18,8 @@ describe('Admin', () => {
     expect(
       screen.getByRole('link', { name: 'Manage Projects' }),
     ).toHaveAttribute('href', '/admin/projects')
+    expect(
+      screen.getByRole('link', { name: 'Manage Milestones' }),
+    ).toHaveAttribute('href', '/admin/milestones')
   })
 })

@@ -5,11 +5,13 @@ import type { ChangeEventHandler } from 'react'
 export const Checkbox = ({
   id,
   label,
+  ariaLabel,
   checked,
   onChange,
 }: {
   id: string
   label?: string
+  ariaLabel?: string
   checked: boolean
   onChange: ChangeEventHandler<HTMLInputElement>
 }) => {
@@ -21,6 +23,7 @@ export const Checkbox = ({
       <input
         type="checkbox"
         id={id}
+        aria-label={ariaLabel}
         checked={checked}
         onChange={onChange}
         className="hidden"

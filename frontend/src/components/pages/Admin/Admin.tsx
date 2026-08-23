@@ -3,6 +3,7 @@ import { Button } from '../../atoms/Button/Button'
 import {
   faCompassDrafting,
   faDiagramProject,
+  faFlagCheckered,
 } from '@fortawesome/free-solid-svg-icons'
 import { Link } from 'react-router-dom'
 
@@ -21,6 +22,12 @@ export const Admin = () => {
           <Button variant="primary">
             <FontAwesomeIcon icon={faDiagramProject} />
             <span>Manage Projects</span>
+          </Button>
+        </Link>
+        <Link to="/admin/milestones">
+          <Button variant="primary">
+            <FontAwesomeIcon icon={faFlagCheckered} />
+            <span>Manage Milestones</span>
           </Button>
         </Link>
       </div>

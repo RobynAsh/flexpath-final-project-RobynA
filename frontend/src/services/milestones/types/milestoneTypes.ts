@@ -4,6 +4,10 @@ export type AddMilestoneRequest = {
   repeatCount: number
 }
 
+export type AdminMilestoneRequest = AddMilestoneRequest & {
+  projectId: number
+}
+
 export type Milestone = AddMilestoneRequest & {
   milestoneId: number
   projectId: number
@@ -13,5 +17,11 @@ export type Milestone = AddMilestoneRequest & {
 
 export type RecentMilestone = {
   projectName: string
+  milestone: Milestone
+}
+
+export type AdminMilestoneDetails = {
+  projectName: string
+  username: string
   milestone: Milestone
 }
