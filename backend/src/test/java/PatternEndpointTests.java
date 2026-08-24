@@ -14,7 +14,9 @@ import org.springframework.http.HttpStatus;
 import support.FinalTestConfiguration;
 import support.WebStoreTest;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -109,6 +111,106 @@ public class PatternEndpointTests extends WebStoreTest {
                 String.class);
 
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+    }
+
+    /**
+     * Tests every filter exposed on the non-admin patterns page.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/patterns should filter all supported user fields in the database")
+    public void listPatternsShouldFilterSupportedUserFields() throws Exception {
+        executeSql("INSERT INTO flexpath_final.users (username, password) "
+                + "VALUES ('pattern-user', 'password');");
+        executeSql("INSERT INTO flexpath_final.patterns "
+                + "(username, category, technique, name, designer, description, difficulty, "
+                + "link, image_url, created_at, updated_at) VALUES "
+                + "('pattern-user', 'Cardigan', 'Crochet', 'Alpine Wrap', 'River Studio', "
+                + "'Warm and textured', 'Intermediate', 'https://example.com/source-path', "
+                + "'https://example.com/image-path.jpg', '2024-01-02 03:04:05', "
+                + "'2025-06-07 08:09:10'), "
+                + "('pattern-user', 'Hat', 'Knitting', 'Basic Beanie', 'Other Studio', "
+                + "'Simple hat', 'Beginner', 'https://example.com/other', "
+                + "'https://example.com/other.jpg', '2023-01-02 03:04:05', "
+                + "'2023-06-07 08:09:10');");
+
+        Map<String, String> filters = Map.ofEntries(
+                Map.entry("name", "ALPINE"),
+                Map.entry("designer", "river"),
+                Map.entry("category", "card"),
+                Map.entry("technique", "croch"),
+                Map.entry("difficulty", "term"),
+                Map.entry("description", "TEXTURED"),
+                Map.entry("link", "source-path"),
+                Map.entry("imageUrl", "image-path"),
+                Map.entry("createdAt", "2024-01-02"),
+                Map.entry("updatedAt", "2025-06-07"));
+
+        for (Map.Entry<String, String> filter : filters.entrySet()) {
+            var result = restTemplate.exchange(
+                    getBaseUrl() + "/api/patterns?filterField=" + filter.getKey()
+                            + "&filterText=" + filter.getValue()
+                            + "&sortField=name&sortDirection=ascending",
+                    HttpMethod.GET,
+                    GetAuthEntity("pattern-user", "password"),
+                    PatternDto[].class);
+
+            assertEquals(HttpStatus.OK, result.getStatusCode(), filter.getKey());
+            assertNotNull(result.getBody(), filter.getKey());
+            assertEquals(1, result.getBody().length, filter.getKey());
+            assertEquals("Alpine Wrap", result.getBody()[0].pattern().getName(), filter.getKey());
+        }
+    }
+
+    /**
+     * Tests that filtering happens before sorting and limiting.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/patterns should filter, sort, and then limit patterns")
+    public void listPatternsShouldFilterSortAndLimit() throws Exception {
+        createUsersAndPatterns();
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/patterns?filterField=name&filterText=Pattern"
+                        + "&sortField=name&sortDirection=descending&limit=2",
+                HttpMethod.GET,
+                GetAuthEntity("pattern-user", "password"),
+                PatternDto[].class);
+        var patterns = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(patterns);
+        assertEquals(
+                List.of("Third Pattern", "Second Pattern"),
+                Arrays.stream(patterns).map(pattern -> pattern.pattern().getName()).toList());
+    }
+
+    /**
+     * Tests that dynamic SQL fields and directions are allow-listed.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/patterns should reject unsupported query options")
+    public void listPatternsShouldRejectUnsupportedQueryOptions() throws Exception {
+        executeSql("INSERT INTO flexpath_final.users (username, password) "
+                + "VALUES ('pattern-user', 'password');");
+
+        for (String query : List.of(
+                "filterField=patternId&filterText=1",
+                "sortField=designer&sortDirection=ascending",
+                "sortField=name&sortDirection=sideways")) {
+            var result = restTemplate.exchange(
+                    getBaseUrl() + "/api/patterns?" + query,
+                    HttpMethod.GET,
+                    GetAuthEntity("pattern-user", "password"),
+                    String.class);
+
+            assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode(), query);
+        }
     }
 
     /**

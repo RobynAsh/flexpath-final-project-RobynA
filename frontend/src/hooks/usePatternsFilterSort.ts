@@ -9,7 +9,7 @@ import type {
 export type SortField = 'name' | 'createdAt' | 'updatedAt'
 export type FilterField = Exclude<keyof Pattern, 'patternId'>
 
-const filterFields: SelectOption[] = [
+export const patternFilterFields: SelectOption[] = [
   { value: 'name', label: 'Name' },
   { value: 'username', label: 'Username' },
   { value: 'designer', label: 'Designer' },
@@ -23,7 +23,7 @@ const filterFields: SelectOption[] = [
   { value: 'updatedAt', label: 'Updated At' },
 ]
 
-const sortFields: SelectOption[] = [
+export const patternSortFields: SelectOption[] = [
   { value: 'name', label: 'Name' },
   { value: 'createdAt', label: 'Created At' },
   { value: 'updatedAt', label: 'Updated At' },
@@ -74,5 +74,9 @@ export const usePatternsFilterSort = ({
     })
   }, [filterField, filterText, patterns, sortDirection, sortField])
 
-  return { filterFields, sortFields, visiblePatterns }
+  return {
+    filterFields: patternFilterFields,
+    sortFields: patternSortFields,
+    visiblePatterns,
+  }
 }

@@ -84,21 +84,53 @@ public class PatternController {
      *
      * @param principal The currently logged in user.
      * @param limit The optional maximum number of patterns to return.
+     * @param filterField The field to filter.
+     * @param filterText The case-insensitive text to find.
+     * @param sortField The field to sort.
+     * @param sortDirection The sort direction.
      * @return The user's patterns with their associated resources.
      */
     @GetMapping
     public List<PatternDto> list(
             Principal principal,
-            @RequestParam(required = false) Integer limit) {
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) String filterField,
+            @RequestParam(required = false) String filterText,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortDirection) {
         if (limit != null && limit < 0) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "limit must be greater than or equal to zero");
         }
 
-        List<Pattern> patterns = limit == null
-                ? patternDao.getPatternsByUsername(principal.getName())
-                : patternDao.getPatternsByUsername(principal.getName(), limit);
+        boolean hasFilter = filterText != null && !filterText.isBlank();
+        if (hasFilter && !patternDao.isFilterFieldSupported(filterField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported filterField");
+        }
+        if (sortField != null && !patternDao.isSortFieldSupported(sortField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortField");
+        }
+        if (sortDirection != null
+                && !sortDirection.equals("ascending")
+                && !sortDirection.equals("descending")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortDirection");
+        }
+
+        List<Pattern> patterns;
+        if (hasFilter || sortField != null || sortDirection != null) {
+            patterns = patternDao.getPatternsByUsername(
+                    principal.getName(),
+                    filterField,
+                    filterText,
+                    sortField == null ? "updatedAt" : sortField,
+                    sortDirection == null ? "descending" : sortDirection,
+                    limit);
+        } else {
+            patterns = limit == null
+                    ? patternDao.getPatternsByUsername(principal.getName())
+                    : patternDao.getPatternsByUsername(principal.getName(), limit);
+        }
 
         return patterns.stream()
                 .map(pattern -> new PatternDto(

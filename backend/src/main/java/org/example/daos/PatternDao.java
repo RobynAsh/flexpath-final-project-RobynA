@@ -13,12 +13,31 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data access object for patterns.
  */
 @Component
 public class PatternDao extends JdbcDao {
+    private static final Map<String, String> FILTER_COLUMNS = Map.ofEntries(
+            Map.entry("name", "name"),
+            Map.entry("username", "username"),
+            Map.entry("designer", "designer"),
+            Map.entry("category", "category"),
+            Map.entry("technique", "technique"),
+            Map.entry("difficulty", "difficulty"),
+            Map.entry("description", "description"),
+            Map.entry("link", "link"),
+            Map.entry("imageUrl", "image_url"),
+            Map.entry("createdAt", "created_at"),
+            Map.entry("updatedAt", "updated_at"));
+
+    private static final Map<String, String> SORT_COLUMNS = Map.of(
+            "name", "name",
+            "createdAt", "created_at",
+            "updatedAt", "updated_at");
+
     /**
      * Creates a new pattern data access object.
      *
@@ -61,6 +80,76 @@ public class PatternDao extends JdbcDao {
                 this::mapToPattern,
                 username,
                 limit);
+    }
+
+    /**
+     * Gets a user's patterns using database-side filtering and sorting.
+     *
+     * @param username The pattern owner.
+     * @param filterField The API field to filter, or null.
+     * @param filterText The case-insensitive text to find, or null.
+     * @param sortField The API field to sort.
+     * @param sortDirection Either ascending or descending.
+     * @param limit The optional maximum number of rows.
+     * @return Matching patterns in the requested order.
+     */
+    public List<Pattern> getPatternsByUsername(
+            String username,
+            String filterField,
+            String filterText,
+            String sortField,
+            String sortDirection,
+            Integer limit) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM patterns WHERE username = ?");
+        List<Object> parameters = new java.util.ArrayList<>();
+        parameters.add(username);
+
+        if (filterText != null && !filterText.isBlank()) {
+            String filterColumn = FILTER_COLUMNS.get(filterField);
+            sql.append(" AND LOWER(COALESCE(CAST(")
+                    .append(filterColumn)
+                    .append(" AS CHAR), '')) LIKE LOWER(?) ESCAPE '\\\\'");
+            parameters.add("%" + escapeLikeValue(filterText.trim()) + "%");
+        }
+
+        sql.append(" ORDER BY ")
+                .append(SORT_COLUMNS.get(sortField))
+                .append(" ")
+                .append("descending".equals(sortDirection) ? "DESC" : "ASC")
+                .append(", pattern_id ")
+                .append("descending".equals(sortDirection) ? "DESC" : "ASC");
+
+        if (limit != null) {
+            sql.append(" LIMIT ?");
+            parameters.add(limit);
+        }
+
+        sql.append(";");
+        return jdbcTemplate.query(sql.toString(), this::mapToPattern, parameters.toArray());
+    }
+
+    /**
+     * Checks whether a field can be used to filter patterns.
+     *
+     * @param field The API field name.
+     * @return Whether the field is supported.
+     */
+    public boolean isFilterFieldSupported(String field) {
+        return FILTER_COLUMNS.containsKey(field);
+    }
+
+    /**
+     * Checks whether a field can be used to sort patterns.
+     *
+     * @param field The API field name.
+     * @return Whether the field is supported.
+     */
+    public boolean isSortFieldSupported(String field) {
+        return SORT_COLUMNS.containsKey(field);
+    }
+
+    private String escapeLikeValue(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     /**

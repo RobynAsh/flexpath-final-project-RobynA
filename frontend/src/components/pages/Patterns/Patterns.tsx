@@ -1,11 +1,12 @@
 import { faAdd } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   type FilterField,
+  patternFilterFields,
+  patternSortFields,
   type SortField,
-  usePatternsFilterSort,
 } from '../../../hooks/usePatternsFilterSort'
 import { useGetPatterns } from '../../../services/patterns/useGetPatterns'
 import { Button } from '../../atoms/Button/Button'
@@ -14,25 +15,41 @@ import { FilterForm } from '../../form/FilterForm/FilterForm'
 import { SortForm, type SortDirection } from '../../form/SortForm/SortForm'
 import { PatternCard } from '../../molecules/PatternCard/PatternCard'
 
-export const Patterns = () => {
-  const { data: patterns, isPending, isError } = useGetPatterns()
+let filterTimeout: number
 
+export const Patterns = () => {
   const [filterField, setFilterField] = useState<FilterField>('name')
   const [filterText, setFilterText] = useState('')
+  const [debouncedFilterText, setDebouncedFilterText] = useState('')
   const [sortField, setSortField] = useState<SortField>('updatedAt')
   const [sortDirection, setSortDirection] =
     useState<SortDirection>('descending')
 
-  const { filterFields, sortFields, visiblePatterns } = usePatternsFilterSort({
-    patterns,
+  useEffect(() => {
+    window.clearTimeout(filterTimeout)
+    filterTimeout = window.setTimeout(
+      () => setDebouncedFilterText(filterText),
+      300,
+    )
+
+    return () => window.clearTimeout(filterTimeout)
+  }, [filterText])
+
+  const {
+    data: patterns,
+    isPending,
+    isError,
+  } = useGetPatterns({
     filterField,
-    filterText,
+    filterText: debouncedFilterText,
     sortField,
     sortDirection,
   })
-  const userFilterFields = filterFields.filter(
+  const visiblePatterns = patterns ?? []
+  const userFilterFields = patternFilterFields.filter(
     ({ value }) => value !== 'username',
   )
+  const hasFilterText = filterText.trim().length > 0
 
   return (
     <div className="flex w-full max-w-6xl flex-col gap-5 md:self-center">
@@ -51,16 +68,14 @@ export const Patterns = () => {
         </div>
       </div>
 
-      {patterns && patterns.length > 0 && (
-        <FilterForm
-          filterFields={userFilterFields}
-          filterField={filterField}
-          filterText={filterText}
-          onFilterFieldChange={(field) => setFilterField(field as FilterField)}
-          onFilterTextChange={setFilterText}
-          placeholder="Enter text to filter patterns"
-        />
-      )}
+      <FilterForm
+        filterFields={userFilterFields}
+        filterField={filterField}
+        filterText={filterText}
+        onFilterFieldChange={(field) => setFilterField(field as FilterField)}
+        onFilterTextChange={setFilterText}
+        placeholder="Enter text to filter patterns"
+      />
 
       <DashBorder>
         <span className="text-2xl font-bold">
@@ -72,7 +87,7 @@ export const Patterns = () => {
       {!isPending && !isError && visiblePatterns.length > 0 && (
         <div>
           <SortForm
-            sortFields={sortFields}
+            sortFields={patternSortFields}
             sortField={sortField}
             sortDirection={sortDirection}
             onSortFieldChange={(field) => setSortField(field as SortField)}
@@ -89,14 +104,14 @@ export const Patterns = () => {
         </p>
       )}
 
-      {!isPending && !isError && patterns?.length === 0 && (
+      {!isPending && !isError && patterns?.length === 0 && !hasFilterText && (
         <p>No patterns have been added yet.</p>
       )}
 
       {!isPending &&
         !isError &&
         patterns &&
-        patterns.length > 0 &&
+        (patterns.length > 0 || hasFilterText) &&
         visiblePatterns.length === 0 && <p>No patterns match your search.</p>}
 
       {!isPending && !isError && visiblePatterns.length > 0 && (
