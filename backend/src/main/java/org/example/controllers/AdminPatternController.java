@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -74,11 +75,40 @@ public class AdminPatternController {
     /**
      * Gets all patterns and their associated resources.
      *
+     * @param filterField The field to filter.
+     * @param filterText The case-insensitive text to find.
+     * @param sortField The field to sort.
+     * @param sortDirection The sort direction.
      * @return The patterns with their tags, yarn, tools, and materials.
      */
     @GetMapping("/all")
-    public List<PatternDto> list() {
-        return patternDao.getPatterns().stream()
+    public List<PatternDto> list(
+            @RequestParam(required = false) String filterField,
+            @RequestParam(required = false) String filterText,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortDirection) {
+        boolean hasFilter = filterText != null && !filterText.isBlank();
+        if (hasFilter && !patternDao.isFilterFieldSupported(filterField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported filterField");
+        }
+        if (sortField != null && !patternDao.isSortFieldSupported(sortField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortField");
+        }
+        if (sortDirection != null
+                && !sortDirection.equals("ascending")
+                && !sortDirection.equals("descending")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortDirection");
+        }
+
+        List<Pattern> patterns = hasFilter || sortField != null || sortDirection != null
+                ? patternDao.getPatterns(
+                        filterField,
+                        filterText,
+                        sortField == null ? "updatedAt" : sortField,
+                        sortDirection == null ? "descending" : sortDirection)
+                : patternDao.getPatterns();
+
+        return patterns.stream()
                 .map(pattern -> new PatternDto(
                         pattern,
                         patternTagDao.getPatternTagsByPatternId(pattern.getPatternId()).stream()

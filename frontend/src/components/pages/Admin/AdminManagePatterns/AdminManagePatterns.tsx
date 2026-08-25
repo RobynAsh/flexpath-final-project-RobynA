@@ -1,13 +1,17 @@
 import { faAdd, faRotateLeft, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   type FilterField,
+  patternFilterFields,
+  patternSortFields,
   type SortField,
-  usePatternsFilterSort,
 } from '../../../../hooks/usePatternsFilterSort'
-import { useAdminGetAllPatterns } from '../../../../services/patterns/admin/useAdminGetAllPatterns'
+import {
+  type PatternDetails,
+  useAdminGetAllPatterns,
+} from '../../../../services/patterns/admin/useAdminGetAllPatterns'
 import { useAdminDeletePatterns } from '../../../../services/patterns/admin/useAdminDeletePatterns'
 import { Button } from '../../../atoms/Button/Button'
 import { DashBorder } from '../../../atoms/DashBorder/DashBorder'
@@ -16,36 +20,53 @@ import { SortForm, type SortDirection } from '../../../form/SortForm/SortForm'
 import { Modal } from '../../../molecules/Modal/Modal'
 import { PatternCard } from '../../../molecules/PatternCard/PatternCard'
 
-export const AdminManagePatterns = () => {
-  const { data: patterns, isPending, isError } = useAdminGetAllPatterns()
+let filterTimeout: number
 
+export const AdminManagePatterns = () => {
   // State for filter and sort options
   const [filterField, setFilterField] = useState<FilterField>('name')
   const [filterText, setFilterText] = useState('')
+  const [debouncedFilterText, setDebouncedFilterText] = useState('')
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortDirection, setSortDirection] = useState<SortDirection>('ascending')
 
+  useEffect(() => {
+    window.clearTimeout(filterTimeout)
+    filterTimeout = window.setTimeout(
+      () => setDebouncedFilterText(filterText),
+      300,
+    )
+
+    return () => window.clearTimeout(filterTimeout)
+  }, [filterText])
+
+  const {
+    data: patterns,
+    isPending,
+    isError,
+  } = useAdminGetAllPatterns({
+    filterField,
+    filterText: debouncedFilterText,
+    sortField,
+    sortDirection,
+  })
+  const visiblePatterns = patterns ?? []
+  const hasFilterText = filterText.trim().length > 0
+
   // State for selected patterns and delete modal
-  const [selectedPatternIds, setSelectedPatternIds] = useState<Set<number>>(
-    new Set(),
-  )
+  const [selectedPatterns, setSelectedPatterns] = useState<
+    Map<number, PatternDetails>
+  >(new Map())
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const deletePatterns = useAdminDeletePatterns()
 
-  const selectedPatterns = useMemo(
-    () =>
-      patterns?.filter(({ pattern }) =>
-        selectedPatternIds.has(pattern.patternId),
-      ) ?? [],
-    [patterns, selectedPatternIds],
-  )
-
-  const setPatternSelected = (patternId: number, selected: boolean) => {
-    setSelectedPatternIds((current) => {
-      const updated = new Set(current)
+  const setPatternSelected = (details: PatternDetails, selected: boolean) => {
+    setSelectedPatterns((current) => {
+      const updated = new Map(current)
+      const patternId = details.pattern.patternId
 
       if (selected) {
-        updated.add(patternId)
+        updated.set(patternId, details)
       } else {
         updated.delete(patternId)
       }
@@ -55,9 +76,9 @@ export const AdminManagePatterns = () => {
   }
 
   const confirmDelete = () => {
-    deletePatterns.mutate([...selectedPatternIds], {
+    deletePatterns.mutate([...selectedPatterns.keys()], {
       onSuccess: () => {
-        setSelectedPatternIds(new Set())
+        setSelectedPatterns(new Map())
         setIsDeleteModalOpen(false)
       },
     })
@@ -71,14 +92,6 @@ export const AdminManagePatterns = () => {
     setIsDeleteModalOpen(false)
   }
 
-  const { filterFields, sortFields, visiblePatterns } = usePatternsFilterSort({
-    patterns,
-    filterField,
-    filterText,
-    sortField,
-    sortDirection,
-  })
-
   return (
     <div className="flex w-full max-w-6xl flex-col gap-5 md:self-center">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-0">
@@ -87,11 +100,11 @@ export const AdminManagePatterns = () => {
           <h4>Add, Update or Delete Patterns</h4>
         </div>
         <div className="flex grow flex-col justify-end gap-2 md:flex-row">
-          {selectedPatternIds.size > 0 && (
+          {selectedPatterns.size > 0 && (
             <div>
               <Button
                 variant="tertiary"
-                onClick={() => setSelectedPatternIds(new Set())}
+                onClick={() => setSelectedPatterns(new Map())}
               >
                 <FontAwesomeIcon icon={faRotateLeft} />
                 Reset
@@ -101,13 +114,13 @@ export const AdminManagePatterns = () => {
           <div>
             <Button
               variant="secondary"
-              disabled={selectedPatternIds.size === 0}
+              disabled={selectedPatterns.size === 0}
               onClick={openDeleteModal}
             >
               <FontAwesomeIcon icon={faTrash} />
-              {selectedPatternIds.size === 0
+              {selectedPatterns.size === 0
                 ? 'Delete Patterns'
-                : `Delete ${selectedPatternIds.size} Patterns`}
+                : `Delete ${selectedPatterns.size} Patterns`}
             </Button>
           </div>
           <Link to="add">
@@ -119,16 +132,14 @@ export const AdminManagePatterns = () => {
         </div>
       </div>
 
-      {patterns && patterns.length > 0 && (
-        <FilterForm
-          filterFields={filterFields}
-          filterField={filterField}
-          filterText={filterText}
-          onFilterFieldChange={(field) => setFilterField(field as FilterField)}
-          onFilterTextChange={setFilterText}
-          placeholder="Enter text to filter patterns"
-        />
-      )}
+      <FilterForm
+        filterFields={patternFilterFields}
+        filterField={filterField}
+        filterText={filterText}
+        onFilterFieldChange={(field) => setFilterField(field as FilterField)}
+        onFilterTextChange={setFilterText}
+        placeholder="Enter text to filter patterns"
+      />
 
       <DashBorder>
         <span className="text-2xl font-bold">
@@ -140,7 +151,7 @@ export const AdminManagePatterns = () => {
       {!isPending && !isError && visiblePatterns.length > 0 && (
         <div>
           <SortForm
-            sortFields={sortFields}
+            sortFields={patternSortFields}
             sortField={sortField}
             sortDirection={sortDirection}
             onSortFieldChange={(field) => setSortField(field as SortField)}
@@ -157,14 +168,14 @@ export const AdminManagePatterns = () => {
         </p>
       )}
 
-      {!isPending && !isError && patterns?.length === 0 && (
+      {!isPending && !isError && patterns?.length === 0 && !hasFilterText && (
         <p>No patterns have been added yet.</p>
       )}
 
       {!isPending &&
         !isError &&
         patterns &&
-        patterns.length > 0 &&
+        (patterns.length > 0 || hasFilterText) &&
         visiblePatterns.length === 0 && <p>No patterns match your search.</p>}
 
       {!isPending && !isError && visiblePatterns.length > 0 && (
@@ -173,9 +184,9 @@ export const AdminManagePatterns = () => {
             <PatternCard
               details={details}
               key={details.pattern.patternId}
-              selected={selectedPatternIds.has(details.pattern.patternId)}
+              selected={selectedPatterns.has(details.pattern.patternId)}
               onSelectedChange={(selected) =>
-                setPatternSelected(details.pattern.patternId, selected)
+                setPatternSelected(details, selected)
               }
               editPath={`/admin/patterns/edit/${details.pattern.patternId}`}
               showUsername={true}
@@ -204,7 +215,7 @@ export const AdminManagePatterns = () => {
             Are you sure you want to delete the following patterns?
           </p>
           <ul className="my-4 list-disc space-y-1 pl-6">
-            {selectedPatterns.map(({ pattern }) => (
+            {[...selectedPatterns.values()].map(({ pattern }) => (
               <li key={pattern.patternId}>{pattern.name}</li>
             ))}
           </ul>

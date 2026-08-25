@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import type { PatternDetails } from '../../../../services/patterns/admin/useAdminGetAllPatterns'
 import { AdminManagePatterns } from './AdminManagePatterns'
@@ -53,12 +53,15 @@ const patterns: PatternDetails[] = [
   },
 ]
 
+const mockGetAllAdminPatterns = jest.fn((_options: unknown) => ({
+  data: patterns,
+  isPending: false,
+  isError: false,
+}))
+
 jest.mock('../../../../services/patterns/admin/useAdminGetAllPatterns', () => ({
-  useAdminGetAllPatterns: () => ({
-    data: patterns,
-    isPending: false,
-    isError: false,
-  }),
+  useAdminGetAllPatterns: (options: unknown) =>
+    mockGetAllAdminPatterns(options),
 }))
 
 jest.mock('../../../../services/patterns/admin/useAdminDeletePatterns', () => ({
@@ -92,10 +95,15 @@ const patternCheckbox = (patternName: string) => {
 
 describe('AdminManagePatterns sorting and filtering', () => {
   beforeEach(() => {
+    mockGetAllAdminPatterns.mockClear()
     mockDeletePatterns.mutate.mockClear()
     mockDeletePatterns.reset.mockClear()
     mockDeletePatterns.isPending = false
     mockDeletePatterns.isError = false
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
   })
 
   test('links each pattern card to its edit route', () => {
@@ -112,23 +120,34 @@ describe('AdminManagePatterns sorting and filtering', () => {
   test('sorts by the selected field and direction', () => {
     renderPage()
 
-    expect(listedPatternNames()).toEqual(['Acorn Hat', 'Zigzag Cardigan'])
+    expect(listedPatternNames()).toEqual(['Zigzag Cardigan', 'Acorn Hat'])
 
     fireEvent.change(screen.getByLabelText('Sort By'), {
       target: { value: 'createdAt' },
     })
     fireEvent.click(screen.getByLabelText('Descending'))
 
-    expect(listedPatternNames()).toEqual(['Acorn Hat', 'Zigzag Cardigan'])
+    expect(mockGetAllAdminPatterns).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sortField: 'createdAt',
+        sortDirection: 'descending',
+      }),
+    )
 
     fireEvent.change(screen.getByLabelText('Sort By'), {
       target: { value: 'updatedAt' },
     })
 
-    expect(listedPatternNames()).toEqual(['Zigzag Cardigan', 'Acorn Hat'])
+    expect(mockGetAllAdminPatterns).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sortField: 'updatedAt',
+        sortDirection: 'descending',
+      }),
+    )
   })
 
-  test('filters the list by the selected field without regard to case', () => {
+  test('debounces filtering before requesting matching patterns', () => {
+    jest.useFakeTimers()
     renderPage()
 
     fireEvent.change(screen.getByLabelText('Filter By'), {
@@ -138,16 +157,20 @@ describe('AdminManagePatterns sorting and filtering', () => {
       target: { value: 'knit' },
     })
 
-    expect(listedPatternNames()).toEqual(['Acorn Hat'])
+    expect(mockGetAllAdminPatterns).toHaveBeenLastCalledWith(
+      expect.objectContaining({ filterField: 'technique', filterText: '' }),
+    )
 
-    fireEvent.change(screen.getByLabelText('Search Text'), {
-      target: { value: 'sewing' },
+    act(() => {
+      jest.advanceTimersByTime(300)
     })
 
-    expect(screen.queryAllByRole('article')).toHaveLength(0)
-    expect(
-      screen.getByText('No patterns match your search.'),
-    ).toBeInTheDocument()
+    expect(mockGetAllAdminPatterns).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filterField: 'technique',
+        filterText: 'knit',
+      }),
+    )
   })
 
   test('enables bulk deletion when a pattern is selected', () => {

@@ -57,6 +57,29 @@ public class PatternDao extends JdbcDao {
     }
 
     /**
+     * Gets all patterns using database-side filtering and sorting.
+     *
+     * @param filterField The API field to filter, or null.
+     * @param filterText The case-insensitive text to find, or null.
+     * @param sortField The API field to sort.
+     * @param sortDirection Either ascending or descending.
+     * @return Matching patterns in the requested order.
+     */
+    public List<Pattern> getPatterns(
+            String filterField,
+            String filterText,
+            String sortField,
+            String sortDirection) {
+        return queryPatterns(
+                null,
+                filterField,
+                filterText,
+                sortField,
+                sortDirection,
+                null);
+    }
+
+    /**
      * Gets all patterns by username.
      *
      * @param username The username that owns the given pattern(s).
@@ -100,13 +123,34 @@ public class PatternDao extends JdbcDao {
             String sortField,
             String sortDirection,
             Integer limit) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM patterns WHERE username = ?");
+        return queryPatterns(
+                username,
+                filterField,
+                filterText,
+                sortField,
+                sortDirection,
+                limit);
+    }
+
+    private List<Pattern> queryPatterns(
+            String username,
+            String filterField,
+            String filterText,
+            String sortField,
+            String sortDirection,
+            Integer limit) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM patterns");
         List<Object> parameters = new java.util.ArrayList<>();
-        parameters.add(username);
+
+        if (username != null) {
+            sql.append(" WHERE username = ?");
+            parameters.add(username);
+        }
 
         if (filterText != null && !filterText.isBlank()) {
             String filterColumn = FILTER_COLUMNS.get(filterField);
-            sql.append(" AND LOWER(COALESCE(CAST(")
+            sql.append(username == null ? " WHERE" : " AND")
+                    .append(" LOWER(COALESCE(CAST(")
                     .append(filterColumn)
                     .append(" AS CHAR), '')) LIKE LOWER(?) ESCAPE '\\\\'");
             parameters.add("%" + escapeLikeValue(filterText.trim()) + "%");
