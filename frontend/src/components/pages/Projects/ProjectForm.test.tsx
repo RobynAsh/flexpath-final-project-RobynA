@@ -75,7 +75,9 @@ describe('ProjectForm', () => {
   test('requires a project name and pattern', async () => {
     const onSubmit = jest.fn().mockResolvedValue(undefined)
     render(
-      <MemoryRouter>
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <ProjectForm
           patterns={patterns}
           onSubmit={onSubmit}
@@ -94,7 +96,9 @@ describe('ProjectForm', () => {
   test('requires a username and matching pattern for admin forms', async () => {
     const onSubmit = jest.fn().mockResolvedValue(undefined)
     render(
-      <MemoryRouter>
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <ProjectForm
           includeUsername
           patterns={patterns}

@@ -18,7 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,11 +41,40 @@ public class AdminMilestoneController {
     /**
      * Gets every milestone with its project and owner information.
      *
-     * @return All milestones.
+     * @param filterField The field to filter.
+     * @param filterText The case-insensitive text to find.
+     * @param sortField The field to sort.
+     * @param sortDirection The sort direction.
+     * @return All matching milestones.
      */
     @GetMapping("/all")
-    public List<AdminMilestoneDto> list() {
-        return milestoneDao.getMilestones().stream()
+    public List<AdminMilestoneDto> list(
+            @RequestParam(required = false) String filterField,
+            @RequestParam(required = false) String filterText,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortDirection) {
+        boolean hasFilter = filterText != null && !filterText.isBlank();
+        if (hasFilter && !milestoneDao.isFilterFieldSupported(filterField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported filterField");
+        }
+        if (sortField != null && !milestoneDao.isSortFieldSupported(sortField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortField");
+        }
+        if (sortDirection != null
+                && !sortDirection.equals("ascending")
+                && !sortDirection.equals("descending")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortDirection");
+        }
+
+        List<Milestone> milestones = hasFilter || sortField != null || sortDirection != null
+                ? milestoneDao.getMilestones(
+                        filterField,
+                        filterText,
+                        sortField == null ? "createdAt" : sortField,
+                        sortDirection == null ? "descending" : sortDirection)
+                : milestoneDao.getMilestones();
+
+        return milestones.stream()
                 .map(this::toAdminMilestone)
                 .toList();
     }

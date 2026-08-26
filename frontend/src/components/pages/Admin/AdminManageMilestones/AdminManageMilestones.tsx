@@ -1,14 +1,16 @@
 import { faAdd, faRotateLeft, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   type MilestoneFilterField,
   type MilestoneSortField,
-  useMilestonesFilterSort,
+  milestoneFilterFields,
+  milestoneSortFields,
 } from '../../../../hooks/useMilestonesFilterSort'
 import { useAdminDeleteMilestones } from '../../../../services/milestones/admin/useAdminDeleteMilestones'
 import { useAdminGetAllMilestones } from '../../../../services/milestones/admin/useAdminGetAllMilestones'
+import type { AdminMilestoneDetails } from '../../../../services/milestones/types/milestoneTypes'
 import { Button } from '../../../atoms/Button/Button'
 import { DashBorder } from '../../../atoms/DashBorder/DashBorder'
 import { FilterForm } from '../../../form/FilterForm/FilterForm'
@@ -16,54 +18,67 @@ import { SortForm, type SortDirection } from '../../../form/SortForm/SortForm'
 import { MilestoneCard } from '../../../molecules/MilestoneCard/MilestoneCard'
 import { Modal } from '../../../molecules/Modal/Modal'
 
+let filterTimeout: number
+
 export const AdminManageMilestones = () => {
-  const { data: milestones, isPending, isError } = useAdminGetAllMilestones()
   const [filterField, setFilterField] =
     useState<MilestoneFilterField>('projectName')
   const [filterText, setFilterText] = useState('')
+  const [debouncedFilterText, setDebouncedFilterText] = useState('')
   const [sortField, setSortField] = useState<MilestoneSortField>('createdAt')
   const [sortDirection, setSortDirection] =
     useState<SortDirection>('descending')
-  const [selectedMilestoneIds, setSelectedMilestoneIds] = useState<Set<number>>(
-    new Set(),
-  )
+
+  useEffect(() => {
+    window.clearTimeout(filterTimeout)
+    filterTimeout = window.setTimeout(
+      () => setDebouncedFilterText(filterText),
+      300,
+    )
+
+    return () => window.clearTimeout(filterTimeout)
+  }, [filterText])
+
+  const {
+    data: milestones,
+    isPending,
+    isError,
+  } = useAdminGetAllMilestones({
+    filterField,
+    filterText: debouncedFilterText,
+    sortField,
+    sortDirection,
+  })
+  const visibleMilestones = milestones ?? []
+  const hasFilterText = filterText.trim().length > 0
+
+  const [selectedMilestones, setSelectedMilestones] = useState<
+    Map<number, AdminMilestoneDetails>
+  >(new Map())
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const deleteMilestones = useAdminDeleteMilestones()
 
-  const selectedMilestones = useMemo(
-    () =>
-      milestones?.filter(({ milestone }) =>
-        selectedMilestoneIds.has(milestone.milestoneId),
-      ) ?? [],
-    [milestones, selectedMilestoneIds],
-  )
-
-  const setMilestoneSelected = (milestoneId: number, selected: boolean) => {
-    setSelectedMilestoneIds((current) => {
-      const updated = new Set(current)
-      if (selected) updated.add(milestoneId)
+  const setMilestoneSelected = (
+    details: AdminMilestoneDetails,
+    selected: boolean,
+  ) => {
+    setSelectedMilestones((current) => {
+      const updated = new Map(current)
+      const milestoneId = details.milestone.milestoneId
+      if (selected) updated.set(milestoneId, details)
       else updated.delete(milestoneId)
       return updated
     })
   }
 
   const confirmDelete = () => {
-    deleteMilestones.mutate([...selectedMilestoneIds], {
+    deleteMilestones.mutate([...selectedMilestones.keys()], {
       onSuccess: () => {
-        setSelectedMilestoneIds(new Set())
+        setSelectedMilestones(new Map())
         setIsDeleteModalOpen(false)
       },
     })
   }
-
-  const { filterFields, sortFields, visibleMilestones } =
-    useMilestonesFilterSort({
-      milestones,
-      filterField,
-      filterText,
-      sortField,
-      sortDirection,
-    })
 
   return (
     <div className="flex w-full max-w-6xl flex-col gap-5 md:self-center">
@@ -73,11 +88,11 @@ export const AdminManageMilestones = () => {
           <h4>Add, Update or Delete Milestones</h4>
         </div>
         <div className="flex grow flex-col justify-end gap-2 md:flex-row">
-          {selectedMilestoneIds.size > 0 && (
+          {selectedMilestones.size > 0 && (
             <div>
               <Button
                 variant="tertiary"
-                onClick={() => setSelectedMilestoneIds(new Set())}
+                onClick={() => setSelectedMilestones(new Map())}
               >
                 <FontAwesomeIcon icon={faRotateLeft} />
                 Reset
@@ -87,13 +102,13 @@ export const AdminManageMilestones = () => {
           <div>
             <Button
               variant="secondary"
-              disabled={selectedMilestoneIds.size === 0}
+              disabled={selectedMilestones.size === 0}
               onClick={() => setIsDeleteModalOpen(true)}
             >
               <FontAwesomeIcon icon={faTrash} />
-              {selectedMilestoneIds.size === 0
+              {selectedMilestones.size === 0
                 ? 'Delete Milestones'
-                : `Delete ${selectedMilestoneIds.size} Milestones`}
+                : `Delete ${selectedMilestones.size} Milestones`}
             </Button>
           </div>
           <Link to="add">
@@ -105,18 +120,16 @@ export const AdminManageMilestones = () => {
         </div>
       </div>
 
-      {milestones && milestones.length > 0 && (
-        <FilterForm
-          filterFields={filterFields}
-          filterField={filterField}
-          filterText={filterText}
-          onFilterFieldChange={(field) =>
-            setFilterField(field as MilestoneFilterField)
-          }
-          onFilterTextChange={setFilterText}
-          placeholder="Enter text to filter milestones"
-        />
-      )}
+      <FilterForm
+        filterFields={milestoneFilterFields}
+        filterField={filterField}
+        filterText={filterText}
+        onFilterFieldChange={(field) =>
+          setFilterField(field as MilestoneFilterField)
+        }
+        onFilterTextChange={setFilterText}
+        placeholder="Enter text to filter milestones"
+      />
 
       <DashBorder>
         <span className="text-2xl font-bold">
@@ -127,7 +140,7 @@ export const AdminManageMilestones = () => {
 
       {!isPending && !isError && visibleMilestones.length > 0 && (
         <SortForm
-          sortFields={sortFields}
+          sortFields={milestoneSortFields}
           sortField={sortField}
           sortDirection={sortDirection}
           onSortFieldChange={(field) =>
@@ -145,14 +158,14 @@ export const AdminManageMilestones = () => {
         </p>
       )}
 
-      {!isPending && !isError && milestones?.length === 0 && (
+      {!isPending && !isError && milestones?.length === 0 && !hasFilterText && (
         <p>No milestones have been added yet.</p>
       )}
 
       {!isPending &&
         !isError &&
         milestones &&
-        milestones.length > 0 &&
+        (milestones.length > 0 || hasFilterText) &&
         visibleMilestones.length === 0 && (
           <p>No milestones match your search.</p>
         )}
@@ -163,9 +176,9 @@ export const AdminManageMilestones = () => {
             <MilestoneCard
               details={details}
               key={details.milestone.milestoneId}
-              selected={selectedMilestoneIds.has(details.milestone.milestoneId)}
+              selected={selectedMilestones.has(details.milestone.milestoneId)}
               onSelectedChange={(selected) =>
-                setMilestoneSelected(details.milestone.milestoneId, selected)
+                setMilestoneSelected(details, selected)
               }
               editPath={`/admin/milestones/edit/${details.milestone.milestoneId}`}
             />
@@ -195,11 +208,13 @@ export const AdminManageMilestones = () => {
             Are you sure you want to delete the following milestones?
           </p>
           <ul className="my-4 list-disc space-y-1 pl-6">
-            {selectedMilestones.map(({ milestone, projectName }) => (
-              <li key={milestone.milestoneId}>
-                {projectName}: {milestone.note}
-              </li>
-            ))}
+            {[...selectedMilestones.values()].map(
+              ({ milestone, projectName }) => (
+                <li key={milestone.milestoneId}>
+                  {projectName}: {milestone.note}
+                </li>
+              ),
+            )}
           </ul>
           {deleteMilestones.isError && (
             <p role="alert" className="mb-4 text-rose-500">

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import type { AdminMilestoneDetails } from '../../../../services/milestones/types/milestoneTypes'
 import { AdminManageMilestones } from './AdminManageMilestones'
@@ -38,14 +38,17 @@ const milestones: AdminMilestoneDetails[] = [
   },
 ]
 
+const mockGetAllAdminMilestones = jest.fn((_options: unknown) => ({
+  data: milestones,
+  isPending: false,
+  isError: false,
+}))
+
 jest.mock(
   '../../../../services/milestones/admin/useAdminGetAllMilestones',
   () => ({
-    useAdminGetAllMilestones: () => ({
-      data: milestones,
-      isPending: false,
-      isError: false,
-    }),
+    useAdminGetAllMilestones: (options: unknown) =>
+      mockGetAllAdminMilestones(options),
   }),
 )
 
@@ -69,21 +72,39 @@ const listedProjects = () =>
     .map((card) => within(card).getByRole('heading', { level: 3 }).textContent)
 
 describe('AdminManageMilestones', () => {
-  beforeEach(() => mockDeleteMilestones.mutate.mockReset())
+  beforeEach(() => {
+    mockGetAllAdminMilestones.mockClear()
+    mockDeleteMilestones.mutate.mockReset()
+  })
 
-  test('links milestones to edit and filters and sorts the list', () => {
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  test('links milestones to edit and requests the selected sorting', () => {
     renderPage()
 
     expect(
       screen.getByRole('link', { name: 'Edit milestone 2' }),
     ).toHaveAttribute('href', '/admin/milestones/edit/2')
-    expect(listedProjects()).toEqual(['Acorn Hat', 'Cardigan'])
+    expect(listedProjects()).toEqual(['Cardigan', 'Acorn Hat'])
 
     fireEvent.change(screen.getByLabelText('Sort By'), {
       target: { value: 'rowCount' },
     })
     fireEvent.click(screen.getByLabelText('Ascending'))
-    expect(listedProjects()).toEqual(['Acorn Hat', 'Cardigan'])
+
+    expect(mockGetAllAdminMilestones).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sortField: 'rowCount',
+        sortDirection: 'ascending',
+      }),
+    )
+  })
+
+  test('debounces filtering before requesting matching milestones', () => {
+    jest.useFakeTimers()
+    renderPage()
 
     fireEvent.change(screen.getByLabelText('Filter By'), {
       target: { value: 'note' },
@@ -91,7 +112,18 @@ describe('AdminManageMilestones', () => {
     fireEvent.change(screen.getByLabelText('Search Text'), {
       target: { value: 'SLEEVES' },
     })
-    expect(listedProjects()).toEqual(['Cardigan'])
+
+    expect(mockGetAllAdminMilestones).toHaveBeenLastCalledWith(
+      expect.objectContaining({ filterField: 'note', filterText: '' }),
+    )
+
+    act(() => {
+      jest.advanceTimersByTime(300)
+    })
+
+    expect(mockGetAllAdminMilestones).toHaveBeenLastCalledWith(
+      expect.objectContaining({ filterField: 'note', filterText: 'SLEEVES' }),
+    )
   })
 
   test('bulk deletes selected milestones after confirmation', () => {

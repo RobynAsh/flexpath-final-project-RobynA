@@ -13,13 +13,32 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data access object for milestones.
  */
 @Component
 public class MilestoneDao extends JdbcDao {
+    private static final Map<String, String> FILTER_COLUMNS = Map.ofEntries(
+            Map.entry("projectName", "p.name"),
+            Map.entry("username", "p.username"),
+            Map.entry("note", "m.note"),
+            Map.entry("rowCount", "m.row_count"),
+            Map.entry("repeatCount", "m.repeat_count"),
+            Map.entry("createdAt", "m.created_at"),
+            Map.entry("updatedAt", "m.updated_at"));
+
+    private static final Map<String, String> SORT_COLUMNS = Map.ofEntries(
+            Map.entry("projectName", "p.name"),
+            Map.entry("username", "p.username"),
+            Map.entry("rowCount", "m.row_count"),
+            Map.entry("repeatCount", "m.repeat_count"),
+            Map.entry("createdAt", "m.created_at"),
+            Map.entry("updatedAt", "m.updated_at"));
+
     /**
      * Creates a new milestone data access object.
      *
@@ -36,6 +55,66 @@ public class MilestoneDao extends JdbcDao {
      */
     public List<Milestone> getMilestones() {
         return jdbcTemplate.query("SELECT * FROM milestones ORDER BY milestone_id;", this::mapToMilestone);
+    }
+
+    /**
+     * Gets all milestones using database-side filtering and sorting.
+     *
+     * @param filterField The API field to filter, or null.
+     * @param filterText The case-insensitive text to find, or null.
+     * @param sortField The API field to sort.
+     * @param sortDirection Either ascending or descending.
+     * @return Matching milestones in the requested order.
+     */
+    public List<Milestone> getMilestones(
+            String filterField,
+            String filterText,
+            String sortField,
+            String sortDirection) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT m.* FROM milestones m INNER JOIN projects p ON p.project_id = m.project_id");
+        List<Object> parameters = new ArrayList<>();
+
+        if (filterText != null && !filterText.isBlank()) {
+            sql.append(" WHERE LOWER(COALESCE(CAST(")
+                    .append(FILTER_COLUMNS.get(filterField))
+                    .append(" AS CHAR), '')) LIKE LOWER(?) ESCAPE '\\\\'");
+            parameters.add("%" + escapeLikeValue(filterText.trim()) + "%");
+        }
+
+        boolean descending = "descending".equals(sortDirection);
+        sql.append(" ORDER BY ")
+                .append(SORT_COLUMNS.get(sortField))
+                .append(descending ? " DESC" : " ASC")
+                .append(", m.milestone_id")
+                .append(descending ? " DESC" : " ASC")
+                .append(";");
+
+        return jdbcTemplate.query(sql.toString(), this::mapToMilestone, parameters.toArray());
+    }
+
+    /**
+     * Checks whether a field can be used to filter milestones.
+     *
+     * @param field The API field name.
+     * @return Whether the field is supported.
+     */
+    public boolean isFilterFieldSupported(String field) {
+        return FILTER_COLUMNS.containsKey(field);
+    }
+
+    /**
+     * Checks whether a field can be used to sort milestones.
+     *
+     * @param field The API field name.
+     * @return Whether the field is supported.
+     */
+    public boolean isSortFieldSupported(String field) {
+        return SORT_COLUMNS.containsKey(field);
+    }
+
+    private String escapeLikeValue(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     /**
