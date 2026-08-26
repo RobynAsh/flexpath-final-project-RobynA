@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -96,15 +97,53 @@ public class ProjectController {
      *
      * @param principal The currently logged-in user.
      * @param includePublic Whether to include public projects owned by other users.
+     * @param filterField The field to filter.
+     * @param filterText The case-insensitive text to find.
+     * @param sortField The field to sort.
+     * @param sortDirection The sort direction.
      * @return The requested projects.
      */
     @GetMapping
     public List<ProjectSummaryDto> list(
             Principal principal,
-            @RequestParam(defaultValue = "false") boolean includePublic) {
-        List<Project> projects = includePublic
-                ? projectDao.getVisibleProjectsByUsername(principal.getName())
-                : projectDao.getProjectsByUsername(principal.getName());
+            @RequestParam(defaultValue = "false") boolean includePublic,
+            @RequestParam(required = false) String filterField,
+            @RequestParam(required = false) String filterText,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortDirection) {
+        boolean hasFilter = filterText != null && !filterText.isBlank();
+        if (hasFilter && !projectDao.isFilterFieldSupported(filterField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported filterField");
+        }
+        if (sortField != null && !projectDao.isSortFieldSupported(sortField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortField");
+        }
+        if (sortDirection != null
+                && !sortDirection.equals("ascending")
+                && !sortDirection.equals("descending")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortDirection");
+        }
+
+        List<Project> projects;
+        if (hasFilter || sortField != null || sortDirection != null) {
+            projects = includePublic
+                    ? projectDao.getVisibleProjectsByUsername(
+                            principal.getName(),
+                            filterField,
+                            filterText,
+                            sortField == null ? "updatedAt" : sortField,
+                            sortDirection == null ? "descending" : sortDirection)
+                    : projectDao.getProjectsByUsername(
+                            principal.getName(),
+                            filterField,
+                            filterText,
+                            sortField == null ? "updatedAt" : sortField,
+                            sortDirection == null ? "descending" : sortDirection);
+        } else {
+            projects = includePublic
+                    ? projectDao.getVisibleProjectsByUsername(principal.getName())
+                    : projectDao.getProjectsByUsername(principal.getName());
+        }
 
         return projects.stream()
                 .map(project -> new ProjectSummaryDto(

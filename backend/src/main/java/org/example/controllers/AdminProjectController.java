@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -51,11 +53,40 @@ public class AdminProjectController {
     /**
      * Gets every project and its tags.
      *
+     * @param filterField The field to filter.
+     * @param filterText The case-insensitive text to find.
+     * @param sortField The field to sort.
+     * @param sortDirection The sort direction.
      * @return All projects.
      */
     @GetMapping("/all")
-    public List<ProjectSummaryDto> list() {
-        return projectDao.getProjects().stream()
+    public List<ProjectSummaryDto> list(
+            @RequestParam(required = false) String filterField,
+            @RequestParam(required = false) String filterText,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortDirection) {
+        boolean hasFilter = filterText != null && !filterText.isBlank();
+        if (hasFilter && !projectDao.isFilterFieldSupported(filterField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported filterField");
+        }
+        if (sortField != null && !projectDao.isSortFieldSupported(sortField)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortField");
+        }
+        if (sortDirection != null
+                && !sortDirection.equals("ascending")
+                && !sortDirection.equals("descending")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortDirection");
+        }
+
+        List<Project> projects = hasFilter || sortField != null || sortDirection != null
+                ? projectDao.getProjects(
+                        filterField,
+                        filterText,
+                        sortField == null ? "updatedAt" : sortField,
+                        sortDirection == null ? "descending" : sortDirection)
+                : projectDao.getProjects();
+
+        return projects.stream()
                 .map(project -> new ProjectSummaryDto(
                         project,
                         getProjectTags(project.getProjectId())))

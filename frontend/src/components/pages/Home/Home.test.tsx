@@ -83,7 +83,7 @@ describe('Home', () => {
       </MemoryRouter>,
     )
     expect(screen.getByText('Welcome back,')).toBeInTheDocument()
-    expect(useGetProjects).toHaveBeenCalledWith(false)
+    expect(useGetProjects).toHaveBeenCalledWith({ includePublic: false })
     expect(screen.getByText('4')).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
     expect(screen.getAllByText('1')).toHaveLength(2)

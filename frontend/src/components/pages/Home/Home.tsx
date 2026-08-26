@@ -12,7 +12,7 @@ const formatDateTime = (value: string) => new Date(value).toLocaleString()
 
 export const Home = () => {
   const { profile } = useProfile()
-  const { data: projects } = useGetProjects(false)
+  const { data: projects } = useGetProjects({ includePublic: false })
   const {
     data: recentMilestones,
     isLoading: areMilestonesLoading,

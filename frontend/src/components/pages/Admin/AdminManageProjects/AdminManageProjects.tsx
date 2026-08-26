@@ -1,14 +1,16 @@
 import { faAdd, faRotateLeft, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   type ProjectFilterField,
   type ProjectSortField,
-  useProjectsFilterSort,
+  projectFilterFields,
+  projectSortFields,
 } from '../../../../hooks/useProjectsFilterSort'
 import { useAdminDeleteProjects } from '../../../../services/projects/admin/useAdminDeleteProjects'
 import { useAdminGetAllProjects } from '../../../../services/projects/admin/useAdminGetAllProjects'
+import type { ProjectSummary } from '../../../../services/projects/types/projectTypes'
 import { Button } from '../../../atoms/Button/Button'
 import { DashBorder } from '../../../atoms/DashBorder/DashBorder'
 import { FilterForm } from '../../../form/FilterForm/FilterForm'
@@ -16,32 +18,51 @@ import { SortForm, type SortDirection } from '../../../form/SortForm/SortForm'
 import { Modal } from '../../../molecules/Modal/Modal'
 import { ProjectCard } from '../../../molecules/ProjectCard/ProjectCard'
 
-export const AdminManageProjects = () => {
-  const { data: projects, isPending, isError } = useAdminGetAllProjects()
+let filterTimeout: number
 
+export const AdminManageProjects = () => {
   const [filterField, setFilterField] = useState<ProjectFilterField>('name')
   const [filterText, setFilterText] = useState('')
+  const [debouncedFilterText, setDebouncedFilterText] = useState('')
   const [sortField, setSortField] = useState<ProjectSortField>('name')
   const [sortDirection, setSortDirection] = useState<SortDirection>('ascending')
-  const [selectedProjectIds, setSelectedProjectIds] = useState<Set<number>>(
-    new Set(),
-  )
+
+  useEffect(() => {
+    window.clearTimeout(filterTimeout)
+    filterTimeout = window.setTimeout(
+      () => setDebouncedFilterText(filterText),
+      300,
+    )
+
+    return () => window.clearTimeout(filterTimeout)
+  }, [filterText])
+
+  const {
+    data: projects,
+    isPending,
+    isError,
+  } = useAdminGetAllProjects({
+    filterField,
+    filterText: debouncedFilterText,
+    sortField,
+    sortDirection,
+  })
+  const visibleProjects = projects ?? []
+  const hasFilterText = filterText.trim().length > 0
+
+  const [selectedProjects, setSelectedProjects] = useState<
+    Map<number, ProjectSummary>
+  >(new Map())
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const deleteProjects = useAdminDeleteProjects()
 
-  const selectedProjects = useMemo(
-    () =>
-      projects?.filter(({ project }) =>
-        selectedProjectIds.has(project.projectId),
-      ) ?? [],
-    [projects, selectedProjectIds],
-  )
+  const setProjectSelected = (details: ProjectSummary, selected: boolean) => {
+    setSelectedProjects((current) => {
+      const updated = new Map(current)
+      const projectId = details.project.projectId
 
-  const setProjectSelected = (projectId: number, selected: boolean) => {
-    setSelectedProjectIds((current) => {
-      const updated = new Set(current)
-      if (selected) updated.add(projectId)
+      if (selected) updated.set(projectId, details)
       else updated.delete(projectId)
 
       return updated
@@ -49,21 +70,13 @@ export const AdminManageProjects = () => {
   }
 
   const confirmDelete = () => {
-    deleteProjects.mutate([...selectedProjectIds], {
+    deleteProjects.mutate([...selectedProjects.keys()], {
       onSuccess: () => {
-        setSelectedProjectIds(new Set())
+        setSelectedProjects(new Map())
         setIsDeleteModalOpen(false)
       },
     })
   }
-
-  const { filterFields, sortFields, visibleProjects } = useProjectsFilterSort({
-    projects,
-    filterField,
-    filterText,
-    sortField,
-    sortDirection,
-  })
 
   return (
     <div className="flex w-full max-w-6xl flex-col gap-5 md:self-center">
@@ -73,11 +86,11 @@ export const AdminManageProjects = () => {
           <h4>Add, Update or Delete Projects</h4>
         </div>
         <div className="flex grow flex-col justify-end gap-2 md:flex-row">
-          {selectedProjectIds.size > 0 && (
+          {selectedProjects.size > 0 && (
             <div>
               <Button
                 variant="tertiary"
-                onClick={() => setSelectedProjectIds(new Set())}
+                onClick={() => setSelectedProjects(new Map())}
               >
                 <FontAwesomeIcon icon={faRotateLeft} />
                 Reset
@@ -87,13 +100,13 @@ export const AdminManageProjects = () => {
           <div>
             <Button
               variant="secondary"
-              disabled={selectedProjectIds.size === 0}
+              disabled={selectedProjects.size === 0}
               onClick={() => setIsDeleteModalOpen(true)}
             >
               <FontAwesomeIcon icon={faTrash} />
-              {selectedProjectIds.size === 0
+              {selectedProjects.size === 0
                 ? 'Delete Projects'
-                : `Delete ${selectedProjectIds.size} Projects`}
+                : `Delete ${selectedProjects.size} Projects`}
             </Button>
           </div>
           <Link to="add">
@@ -105,18 +118,16 @@ export const AdminManageProjects = () => {
         </div>
       </div>
 
-      {projects && projects.length > 0 && (
-        <FilterForm
-          filterFields={filterFields}
-          filterField={filterField}
-          filterText={filterText}
-          onFilterFieldChange={(field) =>
-            setFilterField(field as ProjectFilterField)
-          }
-          onFilterTextChange={setFilterText}
-          placeholder="Enter text to filter projects"
-        />
-      )}
+      <FilterForm
+        filterFields={projectFilterFields}
+        filterField={filterField}
+        filterText={filterText}
+        onFilterFieldChange={(field) =>
+          setFilterField(field as ProjectFilterField)
+        }
+        onFilterTextChange={setFilterText}
+        placeholder="Enter text to filter projects"
+      />
 
       <DashBorder>
         <span className="text-2xl font-bold">
@@ -127,7 +138,7 @@ export const AdminManageProjects = () => {
 
       {!isPending && !isError && visibleProjects.length > 0 && (
         <SortForm
-          sortFields={sortFields}
+          sortFields={projectSortFields}
           sortField={sortField}
           sortDirection={sortDirection}
           onSortFieldChange={(field) => setSortField(field as ProjectSortField)}
@@ -141,13 +152,13 @@ export const AdminManageProjects = () => {
           Unable to load projects. Please try again.
         </p>
       )}
-      {!isPending && !isError && projects?.length === 0 && (
+      {!isPending && !isError && projects?.length === 0 && !hasFilterText && (
         <p>No projects have been added yet.</p>
       )}
       {!isPending &&
         !isError &&
         projects &&
-        projects.length > 0 &&
+        (projects.length > 0 || hasFilterText) &&
         visibleProjects.length === 0 && <p>No projects match your search.</p>}
 
       {!isPending && !isError && visibleProjects.length > 0 && (
@@ -156,9 +167,9 @@ export const AdminManageProjects = () => {
             <ProjectCard
               details={details}
               key={details.project.projectId}
-              selected={selectedProjectIds.has(details.project.projectId)}
+              selected={selectedProjects.has(details.project.projectId)}
               onSelectedChange={(selected) =>
-                setProjectSelected(details.project.projectId, selected)
+                setProjectSelected(details, selected)
               }
               editPath={`/admin/projects/edit/${details.project.projectId}`}
               showUsername
@@ -188,7 +199,7 @@ export const AdminManageProjects = () => {
             Are you sure you want to delete the following projects?
           </p>
           <ul className="my-4 list-disc space-y-1 pl-6">
-            {selectedProjects.map(({ project }) => (
+            {[...selectedProjects.values()].map(({ project }) => (
               <li key={project.projectId}>{project.name}</li>
             ))}
           </ul>

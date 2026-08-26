@@ -13,13 +13,33 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data access object for projects.
  */
 @Component
 public class ProjectDao extends JdbcDao {
+    private static final Map<String, String> FILTER_COLUMNS = Map.ofEntries(
+            Map.entry("name", "name"),
+            Map.entry("username", "username"),
+            Map.entry("status", "status"),
+            Map.entry("public", "CASE WHEN is_public THEN 'public' ELSE 'private' END"),
+            Map.entry("care", "care"),
+            Map.entry("gauge", "gauge"),
+            Map.entry("dateStarted", "date_started"),
+            Map.entry("dateFinished", "date_finished"),
+            Map.entry("dateNeededBy", "date_needed_by"),
+            Map.entry("createdAt", "created_at"),
+            Map.entry("updatedAt", "updated_at"));
+
+    private static final Map<String, String> SORT_COLUMNS = Map.of(
+            "name", "name",
+            "createdAt", "created_at",
+            "updatedAt", "updated_at");
+
     /**
      * Creates a new project data access object.
      *
@@ -39,6 +59,23 @@ public class ProjectDao extends JdbcDao {
     }
 
     /**
+     * Gets all projects using database-side filtering and sorting.
+     *
+     * @param filterField The API field to filter, or null.
+     * @param filterText The case-insensitive text to find, or null.
+     * @param sortField The API field to sort.
+     * @param sortDirection Either ascending or descending.
+     * @return Matching projects in the requested order.
+     */
+    public List<Project> getProjects(
+            String filterField,
+            String filterText,
+            String sortField,
+            String sortDirection) {
+        return queryProjects(null, false, filterField, filterText, sortField, sortDirection);
+    }
+
+    /**
      * Gets all projects by username.
      *
      * @param username The username for the user that owns the given project(s).
@@ -47,6 +84,25 @@ public class ProjectDao extends JdbcDao {
      */
     public List<Project> getProjectsByUsername(String username) {
         return jdbcTemplate.query("SELECT * FROM projects WHERE username = ? ORDER BY project_id;", this::mapToProject, username);
+    }
+
+    /**
+     * Gets a user's projects using database-side filtering and sorting.
+     *
+     * @param username The project owner.
+     * @param filterField The API field to filter, or null.
+     * @param filterText The case-insensitive text to find, or null.
+     * @param sortField The API field to sort.
+     * @param sortDirection Either ascending or descending.
+     * @return Matching projects in the requested order.
+     */
+    public List<Project> getProjectsByUsername(
+            String username,
+            String filterField,
+            String filterText,
+            String sortField,
+            String sortDirection) {
+        return queryProjects(username, false, filterField, filterText, sortField, sortDirection);
     }
 
     /**
@@ -60,6 +116,86 @@ public class ProjectDao extends JdbcDao {
                 "SELECT * FROM projects WHERE username = ? OR is_public = TRUE ORDER BY project_id;",
                 this::mapToProject,
                 username);
+    }
+
+    /**
+     * Gets projects visible to a user using database-side filtering and sorting.
+     *
+     * @param username The username of the user viewing the projects.
+     * @param filterField The API field to filter, or null.
+     * @param filterText The case-insensitive text to find, or null.
+     * @param sortField The API field to sort.
+     * @param sortDirection Either ascending or descending.
+     * @return Matching visible projects in the requested order.
+     */
+    public List<Project> getVisibleProjectsByUsername(
+            String username,
+            String filterField,
+            String filterText,
+            String sortField,
+            String sortDirection) {
+        return queryProjects(username, true, filterField, filterText, sortField, sortDirection);
+    }
+
+    private List<Project> queryProjects(
+            String username,
+            boolean includePublic,
+            String filterField,
+            String filterText,
+            String sortField,
+            String sortDirection) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM projects");
+        List<Object> parameters = new ArrayList<>();
+
+        if (username != null) {
+            sql.append(includePublic
+                    ? " WHERE (username = ? OR is_public = TRUE)"
+                    : " WHERE username = ?");
+            parameters.add(username);
+        }
+
+        if (filterText != null && !filterText.isBlank()) {
+            String filterColumn = FILTER_COLUMNS.get(filterField);
+            sql.append(username == null ? " WHERE" : " AND")
+                    .append(" LOWER(COALESCE(CAST(")
+                    .append(filterColumn)
+                    .append(" AS CHAR), '')) LIKE LOWER(?) ESCAPE '\\\\'");
+            parameters.add("%" + escapeLikeValue(filterText.trim()) + "%");
+        }
+
+        boolean descending = "descending".equals(sortDirection);
+        sql.append(" ORDER BY ")
+                .append(SORT_COLUMNS.get(sortField))
+                .append(descending ? " DESC" : " ASC")
+                .append(", project_id")
+                .append(descending ? " DESC" : " ASC")
+                .append(";");
+
+        return jdbcTemplate.query(sql.toString(), this::mapToProject, parameters.toArray());
+    }
+
+    /**
+     * Checks whether a field can be used to filter projects.
+     *
+     * @param field The API field name.
+     * @return Whether the field is supported.
+     */
+    public boolean isFilterFieldSupported(String field) {
+        return FILTER_COLUMNS.containsKey(field);
+    }
+
+    /**
+     * Checks whether a field can be used to sort projects.
+     *
+     * @param field The API field name.
+     * @return Whether the field is supported.
+     */
+    public boolean isSortFieldSupported(String field) {
+        return SORT_COLUMNS.containsKey(field);
+    }
+
+    private String escapeLikeValue(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     /**

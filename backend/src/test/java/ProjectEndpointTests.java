@@ -12,6 +12,7 @@ import support.FinalTestConfiguration;
 import support.WebStoreTest;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -105,6 +106,66 @@ public class ProjectEndpointTests extends WebStoreTest {
         assertNotNull(projects);
         assertEquals(1, projects.length);
         assertEquals("Owned Project", projects[0].project().getName());
+    }
+
+    /**
+     * Tests that filtering and sorting are applied without exposing another
+     * user's private projects.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/projects should filter and sort visible projects in the database")
+    public void listProjectsShouldFilterAndSortVisibleProjects() throws Exception {
+        createUsersAndPatterns();
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
+                + "SELECT 'project-user', pattern_id, 'Zeta Cardigan', 'In Progress' "
+                + "FROM flexpath_final.patterns WHERE name = 'Owned Pattern';");
+        executeSql("INSERT INTO flexpath_final.projects "
+                + "(username, pattern_id, name, status, is_public) "
+                + "SELECT 'other-user', pattern_id, 'Alpha Cardigan', 'Completed', TRUE "
+                + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
+        executeSql("INSERT INTO flexpath_final.projects (username, pattern_id, name, status) "
+                + "SELECT 'other-user', pattern_id, 'Middle Cardigan', 'Not Started' "
+                + "FROM flexpath_final.patterns WHERE name = 'Other Pattern';");
+
+        var result = restTemplate.exchange(
+                getBaseUrl() + "/api/projects?includePublic=true&filterField=name"
+                        + "&filterText=CARDIGAN&sortField=name&sortDirection=ascending",
+                HttpMethod.GET,
+                GetAuthEntity("project-user", "password"),
+                ProjectSummaryDto[].class);
+        var projects = result.getBody();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(projects);
+        assertEquals(2, projects.length);
+        assertEquals("Alpha Cardigan", projects[0].project().getName());
+        assertEquals("Zeta Cardigan", projects[1].project().getName());
+    }
+
+    /**
+     * Tests validation of filter and sort query options.
+     *
+     * @throws Exception If test data cannot be created.
+     */
+    @Test
+    @DisplayName("GET /api/projects should reject unsupported query options")
+    public void listProjectsShouldRejectUnsupportedQueryOptions() throws Exception {
+        createUsersAndPatterns();
+
+        for (String query : List.of(
+                "filterField=projectId&filterText=1",
+                "sortField=status&sortDirection=ascending",
+                "sortField=name&sortDirection=sideways")) {
+            var result = restTemplate.exchange(
+                    getBaseUrl() + "/api/projects?" + query,
+                    HttpMethod.GET,
+                    GetAuthEntity("project-user", "password"),
+                    String.class);
+
+            assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode(), query);
+        }
     }
 
     /**
