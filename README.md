@@ -1,5 +1,46 @@
 # flexpath-final-project
 
+## Running Frog Log locally
+
+Frog Log is a full-stack fiber-arts project tracker with a React/Vite
+frontend, a Spring Boot REST API, and a MySQL database.
+
+### Application sections
+
+- [Frontend](frontend/README.md) — install the JavaScript dependencies and run
+  the Vite development server.
+- [Backend](backend/README.md) — configure the database connection and run the
+  Spring Boot API.
+- [Database](database/README.md) — create, reset, and seed the MySQL database.
+
+### Prerequisites
+
+- Node.js and npm
+- Java 17
+- Maven
+- MySQL running locally
+
+### Start the complete application
+
+1. [Create and seed the database](database/README.md). Do this first because
+   the backend expects the `flexpath_final` database to exist.
+2. [Start the backend](backend/README.md). The API runs at
+   `http://localhost:8080`.
+3. [Start the frontend](frontend/README.md). The web application runs at
+   `http://localhost:5173` and proxies API requests to the backend.
+
+The seed data includes these login accounts:
+
+| Role | Username | Password |
+| --- | --- | --- |
+| Administrator | `admin` | `admin` |
+| User | `ava` | `password` |
+| User | `ben` | `password` |
+| User | `chloe` | `password` |
+| User | `diego` | `password` |
+
+These credentials are for local development only.
+
 ## Overview
 
 This is the final project for the FlexPath program.  The project is a full-stack application that will allow users to create, curate, and retrieve items and groupings of items.  The application includes a SQL database, a backend RESTful API built with Spring Boot and a frontend application built with React.
