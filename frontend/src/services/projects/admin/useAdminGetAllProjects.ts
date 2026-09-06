@@ -3,7 +3,7 @@ import type { SortDirection } from '../../../components/form/SortForm/SortForm'
 import type {
   ProjectFilterField,
   ProjectSortField,
-} from '../../../hooks/useProjectsFilterSort'
+} from '../../../helpers/projectsFilterSort'
 import { useProfile } from '../../../providers/ProfileContext'
 import type { ProjectSummary } from '../types/projectTypes'
 

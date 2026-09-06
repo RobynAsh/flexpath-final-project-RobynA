@@ -7,7 +7,7 @@ import {
   type ProjectSortField,
   projectFilterFields,
   projectSortFields,
-} from '../../../../hooks/useProjectsFilterSort'
+} from '../../../../helpers/projectsFilterSort'
 import { useAdminDeleteProjects } from '../../../../services/projects/admin/useAdminDeleteProjects'
 import { useAdminGetAllProjects } from '../../../../services/projects/admin/useAdminGetAllProjects'
 import type { ProjectSummary } from '../../../../services/projects/types/projectTypes'

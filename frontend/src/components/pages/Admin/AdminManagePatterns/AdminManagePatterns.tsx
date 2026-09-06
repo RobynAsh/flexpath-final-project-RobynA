@@ -7,7 +7,7 @@ import {
   patternFilterFields,
   patternSortFields,
   type SortField,
-} from '../../../../hooks/usePatternsFilterSort'
+} from '../../../../helpers/patternsFilterSort'
 import {
   type PatternDetails,
   useAdminGetAllPatterns,

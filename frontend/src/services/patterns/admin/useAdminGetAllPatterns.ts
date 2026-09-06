@@ -3,7 +3,7 @@ import type { SortDirection } from '../../../components/form/SortForm/SortForm'
 import type {
   FilterField,
   SortField,
-} from '../../../hooks/usePatternsFilterSort'
+} from '../../../helpers/patternsFilterSort'
 import { useProfile } from '../../../providers/ProfileContext'
 import type { PatternDetails } from '../types/patternTypes'
 

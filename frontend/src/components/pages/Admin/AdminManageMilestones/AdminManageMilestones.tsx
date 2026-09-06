@@ -7,7 +7,7 @@ import {
   type MilestoneSortField,
   milestoneFilterFields,
   milestoneSortFields,
-} from '../../../../hooks/useMilestonesFilterSort'
+} from '../../../../helpers/milestonesFilterSort'
 import { useAdminDeleteMilestones } from '../../../../services/milestones/admin/useAdminDeleteMilestones'
 import { useAdminGetAllMilestones } from '../../../../services/milestones/admin/useAdminGetAllMilestones'
 import type { AdminMilestoneDetails } from '../../../../services/milestones/types/milestoneTypes'

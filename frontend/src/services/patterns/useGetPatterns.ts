@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { SortDirection } from '../../components/form/SortForm/SortForm'
-import type { FilterField, SortField } from '../../hooks/usePatternsFilterSort'
+import type { FilterField, SortField } from '../../helpers/patternsFilterSort'
 import { useProfile } from '../../providers/ProfileContext'
 import type { PatternDetails } from './types/patternTypes'
 

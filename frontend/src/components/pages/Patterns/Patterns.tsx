@@ -7,7 +7,7 @@ import {
   patternFilterFields,
   patternSortFields,
   type SortField,
-} from '../../../hooks/usePatternsFilterSort'
+} from '../../../helpers/patternsFilterSort'
 import { useGetPatterns } from '../../../services/patterns/useGetPatterns'
 import { Button } from '../../atoms/Button/Button'
 import { DashBorder } from '../../atoms/DashBorder/DashBorder'

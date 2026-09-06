@@ -3,7 +3,7 @@ import type { SortDirection } from '../../../components/form/SortForm/SortForm'
 import type {
   MilestoneFilterField,
   MilestoneSortField,
-} from '../../../hooks/useMilestonesFilterSort'
+} from '../../../helpers/milestonesFilterSort'
 import { useProfile } from '../../../providers/ProfileContext'
 import type { AdminMilestoneDetails } from '../types/milestoneTypes'
 

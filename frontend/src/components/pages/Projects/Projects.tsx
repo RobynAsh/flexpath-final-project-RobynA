@@ -7,7 +7,7 @@ import {
   type ProjectSortField,
   projectFilterFields,
   projectSortFields,
-} from '../../../hooks/useProjectsFilterSort'
+} from '../../../helpers/projectsFilterSort'
 import { useGetProjects } from '../../../services/projects/useGetProjects'
 import { Button } from '../../atoms/Button/Button'
 import { DashBorder } from '../../atoms/DashBorder/DashBorder'
